@@ -3,36 +3,63 @@ import { PostsController } from './posts.controller';
 import { ValidationPipe } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { CreatePostsDto } from './dto/create-posts.dto';
+import { PipelineService } from './pipeline/pipeline.service';
 
 describe('PostsController', () => {
   let controller: PostsController;
+  let pipelineService: jest.Mocked<PipelineService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PostsController],
+      providers: [
+        {
+          provide: PipelineService,
+          useValue: { processPosts: jest.fn() },
+        },
+      ],
     }).compile();
 
     controller = module.get<PostsController>(PostsController);
+    pipelineService = module.get(PipelineService);
   });
 
-  it('should accept valid array payload', () => {
+  it('should accept valid array payload', async () => {
     const dto = { posts: [{ postId: '123', text: 'hello', images: ['img1'] }] };
-    expect(controller.create(dto)).toEqual({ accepted: true });
+    pipelineService.processPosts.mockResolvedValue([
+      { postId: '123', processed: true },
+    ]);
+
+    const result = await controller.create(dto);
+    expect(result).toEqual({
+      accepted: true,
+      results: [{ postId: '123', processed: true }],
+    });
+    expect(pipelineService.processPosts).toHaveBeenCalledWith(dto.posts);
   });
 
-  it('should accept multiple posts', () => {
+  it('should accept multiple posts', async () => {
     const dto = {
       posts: [
         { postId: '123', text: 'hello' },
         { postId: '456', text: 'world', images: ['img2'] },
       ],
     };
-    expect(controller.create(dto)).toEqual({ accepted: true });
+    pipelineService.processPosts.mockResolvedValue([
+      { postId: '123', processed: true },
+      { postId: '456', processed: true },
+    ]);
+
+    const result = await controller.create(dto);
+    expect(result.results).toHaveLength(2);
   });
 
-  it('should accept empty posts array', () => {
+  it('should accept empty posts array', async () => {
     const dto = { posts: [] };
-    expect(controller.create(dto)).toEqual({ accepted: true });
+    pipelineService.processPosts.mockResolvedValue([]);
+
+    const result = await controller.create(dto);
+    expect(result).toEqual({ accepted: true, results: [] });
   });
 });
 
