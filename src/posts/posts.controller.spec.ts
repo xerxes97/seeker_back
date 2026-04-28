@@ -4,10 +4,22 @@ import { ValidationPipe } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { CreatePostsDto } from './dto/create-posts.dto';
 import { PipelineService } from './pipeline/pipeline.service';
+import { JobExtractionResult } from './services/ai.service';
 
 describe('PostsController', () => {
   let controller: PostsController;
   let pipelineService: jest.Mocked<PipelineService>;
+
+  const mockResult: JobExtractionResult = {
+    is_job: true,
+    position: 'Developer',
+    company: 'Test Corp',
+    location: 'Remote',
+    modality: 'remote',
+    seniority: 'Senior',
+    salary: null,
+    technologies: ['TypeScript'],
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,14 +38,12 @@ describe('PostsController', () => {
 
   it('should accept valid array payload', async () => {
     const dto = { posts: [{ postId: '123', text: 'hello', images: ['img1'] }] };
-    pipelineService.processPosts.mockResolvedValue([
-      { postId: '123', processed: true },
-    ]);
+    pipelineService.processPosts.mockResolvedValue([mockResult]);
 
     const result = await controller.create(dto);
     expect(result).toEqual({
       accepted: true,
-      results: [{ postId: '123', processed: true }],
+      results: [mockResult],
     });
     expect(pipelineService.processPosts).toHaveBeenCalledWith(dto.posts);
   });
@@ -45,10 +55,7 @@ describe('PostsController', () => {
         { postId: '456', text: 'world', images: ['img2'] },
       ],
     };
-    pipelineService.processPosts.mockResolvedValue([
-      { postId: '123', processed: true },
-      { postId: '456', processed: true },
-    ]);
+    pipelineService.processPosts.mockResolvedValue([mockResult, mockResult]);
 
     const result = await controller.create(dto);
     expect(result.results).toHaveLength(2);

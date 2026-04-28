@@ -1,11 +1,17 @@
-import { Module } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { PostsModule } from './posts/posts.module';
+import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PostsModule],
+  imports: [
+    PostsModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   controllers: [AppController],
   providers: [
     {
@@ -13,6 +19,7 @@ import { PostsModule } from './posts/posts.module';
       useFactory: () =>
         new ValidationPipe({ whitelist: true, transform: true }),
     },
+    AppService,
   ],
 })
 export class AppModule {}

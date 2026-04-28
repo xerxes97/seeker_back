@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { OcrService } from '../services/ocr.service';
-import { AiService } from '../services/ai.service';
+import { AiService, JobExtractionResult } from '../services/ai.service';
 
 @Injectable()
 export class PipelineService {
@@ -10,11 +10,9 @@ export class PipelineService {
   constructor(
     private readonly ocrService: OcrService,
     private readonly aiService: AiService,
-  ) {}
+  ) { }
 
-  async processPost(
-    post: CreatePostDto,
-  ): Promise<{ postId: string; processed: boolean }> {
+  async processPost(post: CreatePostDto): Promise<JobExtractionResult | null> {
     try {
       this.logger.log(`Processing post ${post.postId}`);
       let fullText = post.text;
@@ -27,23 +25,23 @@ export class PipelineService {
         }
       }
 
-      await this.aiService.processText(post.postId, fullText);
+      const result = await this.aiService.processText(post.postId, fullText);
       this.logger.log(`Post ${post.postId} processed successfully`);
-      return { postId: post.postId, processed: true };
+      return result ? { ...result, postId: post.postId } : null;
     } catch (error) {
       const err = error as Error;
       this.logger.error(
         `Error processing post ${post.postId}: ${err.message}`,
         err.stack,
       );
-      return { postId: post.postId, processed: false };
+      return null;
     }
   }
 
   async processPosts(
     posts: CreatePostDto[],
-  ): Promise<Array<{ postId: string; processed: boolean }>> {
-    const results: Array<{ postId: string; processed: boolean }> = [];
+  ): Promise<Array<JobExtractionResult | null>> {
+    const results: Array<JobExtractionResult | null> = [];
     for (const post of posts) {
       const result = await this.processPost(post);
       results.push(result);

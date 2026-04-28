@@ -1,67 +1,103 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ConfigService } from '@nestjs/config';
+import Groq from 'groq-sdk';
+
+export interface JobExtractionResult {
+  postId: string;
+  is_job: boolean | null;
+  position: string | null;
+  company: string | null;
+  location: string | null;
+  modality: string | null;
+  seniority: string | null;
+  salary: {
+    min: number | null;
+    max: number | null;
+    currency: string | null;
+    period: string | null;
+  } | null;
+  technologies: string[];
+}
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private readonly model = new GoogleGenerativeAI(
-    process.env.GEMINI_API_KEY || '',
-  ).getGenerativeModel({ model: 'gemini-1.5-flash' });
+  private readonly configService: ConfigService;
+  private readonly groq: Groq;
+  private readonly model: string;
 
-  async processText(postId: string, text: string): Promise<void> {
+  constructor(configService: ConfigService) {
+    this.configService = configService;
+    this.groq = new Groq({
+      apiKey: this.configService.get('GROQ_API_KEY') || '',
+    });
+    this.model = this.configService.get('MODEL') || 'llama-3.3-70b-versatile';
+  }
+
+  async processText(
+    postId: string,
+    text: string,
+  ): Promise<JobExtractionResult | null> {
     try {
       const result = await this.extractJobInfo(text);
       this.logger.log(`Post ${postId} extracted: ${JSON.stringify(result)}`);
+      return result;
     } catch (error) {
       this.logger.error(
         `AI extraction failed for post ${postId}: ${(error as Error).message}`,
       );
+      return null;
     }
   }
 
-  async extractJobInfo(text: string): Promise<{
-    position: string | null;
-    company: string | null;
-    location: string | null;
-    seniority: string | null;
-    technologies: string[];
-  }> {
+  private async extractJobInfo(text: string): Promise<JobExtractionResult> {
     const prompt = `Classify and extract job data. Return JSON:
-is_job, position, company, location, seniority, technologies[].
-If not job: is_job=false, others=null. No text.
+is_job, position, company, location, modality, seniority, salary, technologies[].
+
+Modality: remote|hybrid|onsite.
+Salary: {min, max, currency (USD|EUR|COP), period (hour|month|year)}.
+
+If not job: is_job=false, others=null.
+Use null if missing. No text.
 
 Text: ${text}`;
 
-    try {
-      const result = await this.model.generateContent(prompt);
-      const response = result.response.text();
-      const parsed = JSON.parse(response) as {
-        position?: string;
-        company?: string;
-        location?: string;
-        seniority?: string;
-        technologies?: string[];
-      };
-      return {
-        position: parsed.position || null,
-        company: parsed.company || null,
-        location: parsed.location || null,
-        seniority: parsed.seniority || null,
-        technologies: Array.isArray(parsed.technologies)
-          ? parsed.technologies
-          : [],
-      };
-    } catch (error) {
-      this.logger.error(
-        `Failed to extract job info: ${(error as Error).message}`,
-      );
-      return {
-        position: null,
-        company: null,
-        location: null,
-        seniority: null,
-        technologies: [],
-      };
+    const result = await this.groq.chat.completions.create({
+      messages: [{
+        role: "user",
+        content: prompt
+      }],
+      model: this.model
+    });
+    const response = result.choices[0]?.message?.content || "";
+    const parsed = this.safeParse(response) as Partial<JobExtractionResult>;
+    return {
+      postId: "",
+      is_job: parsed.is_job ?? null,
+      position: parsed.position || null,
+      company: parsed.company || null,
+      location: parsed.location || null,
+      modality: parsed.modality || null,
+      seniority: parsed.seniority || null,
+      salary: parsed.salary ?? null,
+      technologies: Array.isArray(parsed.technologies)
+        ? parsed.technologies
+        : [],
+     };
+   }
+
+   private safeParse(text: string): unknown {
+    const cleaned = this.cleanJsonResponse(text);
+
+    const match = new RegExp(/\{[\s\S]*\}/).exec(cleaned);
+    if (!match) {
+      throw new Error('No JSON found');
     }
+
+    return JSON.parse(match[0]);
+  }
+
+  private cleanJsonResponse(text: string): string {
+    return text.replaceAll('```json', '').replaceAll('```', '').trim();
   }
 }
