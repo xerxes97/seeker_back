@@ -22,7 +22,9 @@ export class PipelineService {
       if (post.images && post.images.length > 0) {
         this.logger.log(`Running OCR for post ${post.postId}`);
         const ocrText = await this.ocrService.processImages(post.images);
-        fullText = `${fullText} ${ocrText}`.trim();
+        if (ocrText) {
+          fullText = `${fullText} ${ocrText}`.trim();
+        }
       }
 
       await this.aiService.processText(post.postId, fullText);
