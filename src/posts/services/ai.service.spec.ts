@@ -27,9 +27,7 @@ describe('AiService', () => {
       .overrideProvider(AiService)
       .useFactory({
         factory: () => {
-          const service = new AiService(
-            new ConfigService(),
-          );
+          const service = new AiService(new ConfigService());
           (service as any).groq = {
             chat: {
               completions: {
@@ -70,7 +68,10 @@ describe('AiService', () => {
     };
     mockChatCompletionsCreate.mockResolvedValue(mockResponse);
 
-    const result = await service.processText('123', 'Hiring Senior Software Engineer at Tech Corp');
+    const result = await service.processText(
+      '123',
+      'Hiring Senior Software Engineer at Tech Corp',
+    );
     expect(result).toMatchObject({
       is_job: true,
       position: 'Software Engineer',
@@ -129,7 +130,10 @@ describe('AiService', () => {
     };
     mockChatCompletionsCreate.mockResolvedValue(mockResponse);
 
-    const result = await service.processText('123', 'Long job description here...');
+    const result = await service.processText(
+      '123',
+      'Long job description here...',
+    );
     expect(result).toHaveProperty('position');
     expect(result).toHaveProperty('company');
     expect(result).toHaveProperty('location');

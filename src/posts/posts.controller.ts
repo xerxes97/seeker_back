@@ -9,7 +9,7 @@ export class PostsController {
   constructor(private readonly pipelineService: PipelineService) {}
 
   @Post()
-  async create(@Body() createPostsDto: CreatePostsDto) {
+  async create(@Body() createPostsDto: any) {
     createPostsDto.posts.forEach((post) => {
       this.logger.log(`Received post: ${post.postId}`);
     });

@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "firebase-basics": {
+      "source": "firebase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-basics/SKILL.md",
+      "computedHash": "036913ba5ab48d85f44f276dfd7a4194506f9f7c780c4251d9d25bcceda09131"
+    },
     "nestjs-expert": {
       "source": "jeffallan/claude-skills",
       "sourceType": "github",

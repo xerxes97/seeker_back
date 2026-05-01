@@ -63,16 +63,18 @@ Use null if missing. No text.
 Text: ${text}`;
 
     const result = await this.groq.chat.completions.create({
-      messages: [{
-        role: "user",
-        content: prompt
-      }],
-      model: this.model
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      model: this.model,
     });
-    const response = result.choices[0]?.message?.content || "";
+    const response = result.choices[0]?.message?.content || '';
     const parsed = this.safeParse(response) as Partial<JobExtractionResult>;
     return {
-      postId: "",
+      postId: '',
       is_job: parsed.is_job ?? null,
       position: parsed.position || null,
       company: parsed.company || null,
@@ -83,10 +85,10 @@ Text: ${text}`;
       technologies: Array.isArray(parsed.technologies)
         ? parsed.technologies
         : [],
-     };
-   }
+    };
+  }
 
-   private safeParse(text: string): unknown {
+  private safeParse(text: string): unknown {
     const cleaned = this.cleanJsonResponse(text);
 
     const match = new RegExp(/\{[\s\S]*\}/).exec(cleaned);
@@ -94,7 +96,30 @@ Text: ${text}`;
       throw new Error('No JSON found');
     }
 
-    return JSON.parse(match[0]);
+    const jsonStr = match[0];
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      const balanced = this.extractBalancedJson(jsonStr);
+      return JSON.parse(balanced);
+    }
+  }
+
+  private extractBalancedJson(text: string): string {
+    let depth = 0;
+    let start = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') {
+        if (depth === 0) start = i;
+        depth++;
+      } else if (text[i] === '}') {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          return text.slice(start, i + 1);
+        }
+      }
+    }
+    throw new Error('No balanced JSON found');
   }
 
   private cleanJsonResponse(text: string): string {

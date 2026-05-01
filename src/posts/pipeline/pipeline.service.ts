@@ -10,7 +10,7 @@ export class PipelineService {
   constructor(
     private readonly ocrService: OcrService,
     private readonly aiService: AiService,
-  ) { }
+  ) {}
 
   async processPost(post: CreatePostDto): Promise<JobExtractionResult | null> {
     try {
