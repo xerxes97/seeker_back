@@ -1,4 +1,4 @@
-import { IsUUID, IsArray, IsString, IsInt, Min, Max, IsIn, IsOptional } from 'class-validator';
+import { IsUUID, IsArray, IsString, IsInt, Min, Max, IsIn, IsOptional, IsDate } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
 export type Seniority = (typeof SENIORITY_VALUES)[number];
@@ -26,4 +26,16 @@ export class CreateUserProfileDto {
 
   @IsIn(SENIORITY_VALUES)
   seniority?: Seniority;
+  
+  @IsOptional()
+  @IsDate()
+  created_at?: Date;
+  
+  @IsOptional()
+  @IsDate()
+  updated_at?: Date;
+  
+  @IsOptional()
+  @IsDate()
+  deleted_at?: Date;
 }

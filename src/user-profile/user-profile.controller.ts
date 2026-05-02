@@ -1,53 +1,53 @@
-import { Controller, Get, Post, Put, Body, Param, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Query, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { UserProfileService } from './user-profile.service';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { ListUserProfileDto } from './dto/list-user-profile.dto';
 
 @ApiTags('user-profile')
-@Controller('user-profile')
+@Controller('user/profile')
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Create or update user profile' })
-  @ApiResponse({ status: 200, description: 'Profile created/updated successfully' })
+  @ApiOperation({ summary: 'Create or update user profile with parsed CV' })
+  @ApiResponse({ status: 200, description: 'Profile saved successfully', type: ListUserProfileDto })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async createOrUpdate(@Body() dto: CreateUserProfileDto) {
-    const profile = await this.userProfileService.createOrUpdate(dto);
-    return {
-      status: 'success',
-      data: profile,
-    };
+  async saveProfile(@Body() dto: CreateUserProfileDto): Promise<ListUserProfileDto> {
+    return this.userProfileService.saveProfile(dto.user_id, dto);
   }
 
-  @Get(':user_id')
-  @ApiOperation({ summary: 'Get user profile by user ID' })
-  @ApiParam({ name: 'user_id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'Profile found' })
+  @Get()
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
+  @ApiResponse({ status: 200, description: 'Profile found', type: ListUserProfileDto })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async findByUserId(@Param('user_id') user_id: string) {
-    const profile = await this.userProfileService.findByUserId(user_id);
-    return {
-      user_id: profile.user_id,
-      skills: profile.skills,
-      roles: profile.roles,
-      experience_years: profile.experience_years,
-      seniority: profile.seniority,
-    };
+  async getProfile(@Query('user_id') user_id: string): Promise<ListUserProfileDto> {
+    const profile = await this.userProfileService.getProfile(user_id);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    return profile;
   }
 
-  @Put(':user_id')
-  @ApiOperation({ summary: 'Update user profile' })
-  @ApiParam({ name: 'user_id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  @Put()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update existing user profile' })
+  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully', type: ListUserProfileDto })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async update(@Param('user_id') user_id: string, @Body() dto: UpdateUserProfileDto) {
-    const profile = await this.userProfileService.update(user_id, dto);
-    return {
-      status: 'success',
-      data: profile,
-    };
+  async updateProfile(@Query('user_id') user_id: string, @Body() dto: UpdateUserProfileDto): Promise<ListUserProfileDto> {
+    return this.userProfileService.updateProfile(user_id, dto);
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Soft delete user profile (sets deleted_at)' })
+  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
+  @ApiResponse({ status: 204, description: 'Profile deleted successfully' })
+  async deleteProfile(@Query('user_id') user_id: string): Promise<void> {
+    await this.userProfileService.deleteProfile(user_id);
   }
 }
