@@ -1,4 +1,4 @@
-import { IsUUID, IsArray, IsString, IsInt, Min, Max, IsIn, IsOptional, IsDate } from 'class-validator';
+import { IsUUID, IsArray, IsString, IsInt, Min, Max, IsIn, IsOptional, ArrayMinSize, ArrayMaxSize, IsDate } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
 export type Seniority = (typeof SENIORITY_VALUES)[number];
@@ -8,25 +8,25 @@ export class CreateUserProfileDto {
   user_id: string;
 
   @IsArray()
-  @Min(1, { message: 'At least one skill is required' })
-  @Max(20, { message: 'Maximum 20 skills allowed' })
   @IsString({ each: true })
-  skills?: string[];
+  skills: string[];
 
   @IsOptional()
   @IsArray()
-  @Max(5, { message: 'Maximum 5 roles allowed' })
+  @ArrayMaxSize(5, { message: 'Maximum 5 roles allowed' })
   @IsString({ each: true })
   roles?: string[];
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(50)
   experience_years?: number;
 
+  @IsOptional()
   @IsIn(SENIORITY_VALUES)
   seniority?: Seniority;
-  
+
   @IsOptional()
   @IsDate()
   created_at?: Date;

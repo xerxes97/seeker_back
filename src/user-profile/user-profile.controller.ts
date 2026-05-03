@@ -38,16 +38,16 @@ export class UserProfileController {
   @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
   @ApiResponse({ status: 200, description: 'Profile updated successfully', type: ListUserProfileDto })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async updateProfile(@Query('user_id') user_id: string, @Body() dto: UpdateUserProfileDto): Promise<ListUserProfileDto> {
+  async updateProfile(@Query('user_id') user_id: string, @Body() dto: UpdateUserProfileDto): Promise<ListUserProfileDto | null> {
     return this.userProfileService.updateProfile(user_id, dto);
   }
 
-  @Delete()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Soft delete user profile (sets deleted_at)' })
-  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
-  @ApiResponse({ status: 204, description: 'Profile deleted successfully' })
-  async deleteProfile(@Query('user_id') user_id: string): Promise<void> {
-    await this.userProfileService.deleteProfile(user_id);
-  }
+  // @Delete()
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // @ApiOperation({ summary: 'Soft delete user profile (sets deleted_at)' })
+  // @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
+  // @ApiResponse({ status: 204, description: 'Profile deleted successfully' })
+  // async deleteProfile(@Query('user_id') user_id: string): Promise<void> {
+  //   await this.userProfileService.(user_id);
+  // }
 }

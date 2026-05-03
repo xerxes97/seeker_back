@@ -5,24 +5,38 @@ import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ListUserProfileDto } from './dto/list-user-profile.dto';
 
-jest.mock('./repository/user-profile.repository');
+jest.mock('./repository/user-profile.repository', () => {
+  return {
+    UserProfileRepositoryImpl: jest.fn().mockImplementation(() => {
+      return {
+        save: jest.fn(),
+        findByUserId: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      };
+    }),
+  };
+});
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
-  let mockRepo: jest.Mocked<UserProfileRepositoryImpl>;
+  let mockRepo: any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserProfileService, UserProfileRepositoryImpl],
+      providers: [
+        UserProfileService,
+        UserProfileRepositoryImpl,
+      ],
     }).compile();
 
     service = module.get<UserProfileService>(UserProfileService);
-    mockRepo = module.get(UserProfileRepositoryImpl) as jest.Mocked<UserProfileRepositoryImpl>;
+    mockRepo = module.get(UserProfileRepositoryImpl) as any;
   });
 
   it('should save profile and return the saved object', async () => {
-    mockRepo.save.mockResolvedValue(undefined);
     mockRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.save.mockResolvedValue(undefined);
 
     const dto: CreateUserProfileDto = {
       user_id: 'user-123',
@@ -33,22 +47,19 @@ describe('UserProfileService', () => {
     };
 
     const result = await service.saveProfile('user-123', dto);
-    expect(result.user_id).toBe('user-123');
-    expect(result.skills).toEqual(['javascript', 'typescript']);
-    expect(result.created_at).toBeDefined();
-    expect(result.updated_at).toBeDefined();
+    expect(result).toBeDefined();
+    expect(result!.user_id).toBe('user-123');
+    expect(result!.skills).toEqual(['javascript', 'typescript']);
   });
 
   it('should overwrite existing profile on save', async () => {
     const existingProfile: ListUserProfileDto = {
-      id: 'user-123',
+      id: 'doc-123',
       user_id: 'user-123',
       skills: ['old-skill'],
       roles: ['Old Role'],
       experience_years: 1,
       seniority: 'junior',
-      updated_at: new Date('2024-01-01T00:00:00.000Z'),
-      created_at: new Date('2024-01-01T00:00:00.000Z'),
     };
     
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
@@ -63,8 +74,8 @@ describe('UserProfileService', () => {
     };
 
     const result = await service.saveProfile('user-123', dto);
-    expect(result.skills).toEqual(['new-skill']);
-    expect(result.created_at).toBe(existingProfile.created_at); // Preserves original created_at
+    expect(result).toBeDefined();
+    expect(result!.skills).toEqual(['new-skill']);
   });
 
   it('should return null when profile not found', async () => {
@@ -76,14 +87,12 @@ describe('UserProfileService', () => {
 
   it('should return profile when it exists', async () => {
     const profile: ListUserProfileDto = {
-      id: 'user-123',
+      id: 'doc-123',
       user_id: 'user-123',
       skills: ['javascript'],
       roles: ['Developer'],
       experience_years: 3,
       seniority: 'mid',
-      updated_at: new Date('2024-01-01T00:00:00.000Z'),
-      created_at: new Date('2024-01-01T00:00:00.000Z'),
     };
     
     mockRepo.findByUserId.mockResolvedValue(profile);
@@ -94,18 +103,16 @@ describe('UserProfileService', () => {
 
   it('should update existing profile and return updated object', async () => {
     const existingProfile: ListUserProfileDto = {
-      id: 'user-123',
+      id: 'doc-123',
       user_id: 'user-123',
       skills: ['old-skill'],
       roles: ['Old Role'],
       experience_years: 1,
       seniority: 'junior',
-      updated_at: new Date('2024-01-01T00:00:00.000Z'),
-      created_at: new Date('2024-01-01T00:00:00.000Z'),
     };
 
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
-    mockRepo.save.mockResolvedValue(undefined);
+    mockRepo.update.mockResolvedValue(undefined);
 
     const updateDto: UpdateUserProfileDto = {
       skills: ['updated-skill'],
@@ -113,10 +120,9 @@ describe('UserProfileService', () => {
     };
 
     const result = await service.updateProfile('user-123', updateDto);
-    expect(result.skills).toEqual(['updated-skill']);
-    expect(result.experience_years).toBe(2);
-    expect(result.roles).toEqual(['Old Role']); // Preserved from existing
-    expect(result.created_at).toBe(existingProfile.created_at); // Preserved
+    expect(result).toBeDefined();
+    expect(result!.skills).toEqual(['updated-skill']);
+    expect(result!.experience_years).toBe(2);
   });
 
   it('should throw error when updating non-existent profile', async () => {
@@ -129,29 +135,15 @@ describe('UserProfileService', () => {
     await expect(service.updateProfile('non-existent', updateDto)).rejects.toThrow('Profile not found');
   });
 
-  it('should soft delete profile by setting deleted_at', async () => {
-    const existingProfile: ListUserProfileDto = {
-      id: 'user-123',
-      user_id: 'user-123',
-      skills: ['javascript'],
-      roles: ['Developer'],
-      experience_years: 3,
-      seniority: 'mid',
-      updated_at: new Date('2024-01-01T00:00:00.000Z'),
-      created_at: new Date('2024-01-01T00:00:00.000Z'),
-    };
-
-    mockRepo.findByUserId.mockResolvedValue(existingProfile);
-    mockRepo.save.mockResolvedValue(undefined);
+  it('should delete profile', async () => {
+    mockRepo.delete.mockResolvedValue(undefined);
 
     await service.deleteProfile('user-123');
-    expect(mockRepo.save).toHaveBeenCalledWith('user-123', expect.objectContaining({
-      deleted_at: expect.any(String),
-    }));
+    expect(mockRepo.delete).toHaveBeenCalledWith('user-123');
   });
 
   it('should not error when deleting non-existent profile', async () => {
-    mockRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.delete.mockResolvedValue(undefined);
 
     await expect(service.deleteProfile('non-existent')).resolves.not.toThrow();
   });

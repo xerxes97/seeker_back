@@ -34,6 +34,11 @@ export class FirebaseRepository {
         return { id: doc.id, ...doc.data() } as T;
     }
 
+    async findBy<T>(collection: string, param: any[], limit: number = 1): Promise<T[]> {
+        const doc = await this.db.collection(collection).where(param).limit(limit).get();
+        return doc.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
+    }
+
     async update<T extends DocumentData>(collection: string, id: string, data: T): Promise<WithId<T>> {
         await this.db.collection(collection).doc(id).update(data);
         return { id, ...data };
