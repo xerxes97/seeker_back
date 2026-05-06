@@ -6,9 +6,12 @@ import { ListUserProfileDto } from './dto/list-user-profile.dto';
 
 @Injectable()
 export class UserProfileService {
-  constructor(private readonly repo: UserProfileRepositoryImpl) { }
+  constructor(private readonly repo: UserProfileRepositoryImpl) {}
 
-  async saveProfile(userId: string, dto: CreateUserProfileDto): Promise<ListUserProfileDto> {
+  async saveProfile(
+    userId: string,
+    dto: CreateUserProfileDto,
+  ): Promise<ListUserProfileDto> {
     return this.repo.save(userId, dto);
   }
 
@@ -16,7 +19,10 @@ export class UserProfileService {
     return this.repo.findByUserId(userId);
   }
 
-  async updateProfile(userId: string, dto: UpdateUserProfileDto): Promise<ListUserProfileDto | null> {
+  async updateProfile(
+    userId: string,
+    dto: UpdateUserProfileDto,
+  ): Promise<ListUserProfileDto | null> {
     return await this.repo.update(userId, dto);
   }
 

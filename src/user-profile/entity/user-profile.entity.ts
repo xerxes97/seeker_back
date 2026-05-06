@@ -4,5 +4,8 @@ export class UserProfile {
   roles: string[];
   experience_years: number;
   seniority: string;
+  location?: string;
+  department?: string;
+  modality?: string[];
   updated_at: string;
 }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { UserProfileService } from './user-profile.service';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
@@ -13,18 +23,30 @@ export class UserProfileController {
   @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Create or update user profile with parsed CV' })
-  @ApiResponse({ status: 200, description: 'Profile saved successfully', type: ListUserProfileDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile saved successfully',
+    type: ListUserProfileDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async saveProfile(@Body() dto: CreateUserProfileDto): Promise<ListUserProfileDto> {
+  async saveProfile(
+    @Body() dto: CreateUserProfileDto,
+  ): Promise<ListUserProfileDto> {
     return this.userProfileService.saveProfile(dto.user_id, dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get user profile' })
   @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
-  @ApiResponse({ status: 200, description: 'Profile found', type: ListUserProfileDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile found',
+    type: ListUserProfileDto,
+  })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async getProfile(@Query('user_id') user_id: string): Promise<ListUserProfileDto> {
+  async getProfile(
+    @Query('user_id') user_id: string,
+  ): Promise<ListUserProfileDto> {
     const profile = await this.userProfileService.getProfile(user_id);
     if (!profile) {
       throw new NotFoundException('Profile not found');
@@ -36,9 +58,16 @@ export class UserProfileController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update existing user profile' })
   @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully', type: ListUserProfileDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: ListUserProfileDto,
+  })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async updateProfile(@Query('user_id') user_id: string, @Body() dto: UpdateUserProfileDto): Promise<ListUserProfileDto | null> {
+  async updateProfile(
+    @Query('user_id') user_id: string,
+    @Body() dto: UpdateUserProfileDto,
+  ): Promise<ListUserProfileDto | null> {
     return this.userProfileService.updateProfile(user_id, dto);
   }
 

@@ -1,7 +1,21 @@
-import { IsUUID, IsArray, IsString, IsInt, Min, Max, IsIn, IsOptional, ArrayMinSize, ArrayMaxSize, IsDate } from 'class-validator';
+import {
+  IsUUID,
+  IsArray,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsIn,
+  IsOptional,
+  ArrayMaxSize,
+  IsDate,
+} from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
 export type Seniority = (typeof SENIORITY_VALUES)[number];
+
+const MODALITY_VALUES = ['onHouse', 'presential', 'hybrid'] as const;
+export type Modality = (typeof MODALITY_VALUES)[number];
 
 export class CreateUserProfileDto {
   @IsUUID()
@@ -9,7 +23,7 @@ export class CreateUserProfileDto {
 
   @IsArray()
   @IsString({ each: true })
-  skills: string[];
+  skills?: string[];
 
   @IsOptional()
   @IsArray()
@@ -28,13 +42,26 @@ export class CreateUserProfileDto {
   seniority?: Seniority;
 
   @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsString()
+  department?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsIn(MODALITY_VALUES, { each: true })
+  modality?: Modality[];
+
+  @IsOptional()
   @IsDate()
   created_at?: Date;
-  
+
   @IsOptional()
   @IsDate()
   updated_at?: Date;
-  
+
   @IsOptional()
   @IsDate()
   deleted_at?: Date;

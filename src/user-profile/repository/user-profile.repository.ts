@@ -9,34 +9,64 @@ import { UpdateUserProfileDto } from '../dto/update-user-profile.dto';
 export class UserProfileRepositoryImpl implements UserProfileRepository {
   constructor(private readonly firebaseRepository: FirebaseRepository) {}
 
-  async save(userId: string, profile: CreateUserProfileDto): Promise<ListUserProfileDto> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>('user_profiles');
-    const existing = profiles.find(p => p.user_id === userId);
-    
+  async save(
+    userId: string,
+    profile: CreateUserProfileDto,
+  ): Promise<ListUserProfileDto> {
+    const profiles =
+      await this.firebaseRepository.findAll<ListUserProfileDto>(
+        'user_profiles',
+      );
+    const existing = profiles.find((p) => p.user_id === userId);
+
     if (existing) {
-      return await this.firebaseRepository.update('user_profiles', existing.id, profile);
+      return await this.firebaseRepository.update(
+        'user_profiles',
+        existing.id,
+        profile,
+      );
     } else {
-      return await this.firebaseRepository.create('user_profiles', { ...profile, id: userId });
+      return await this.firebaseRepository.create('user_profiles', {
+        ...profile,
+        id: userId,
+      });
     }
   }
 
+  //TODO: update to support fundBy... query
   async findByUserId(userId: string): Promise<ListUserProfileDto | null> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>('user_profiles');
-    return profiles.find(p => p.user_id === userId) ?? null;
+    const profiles =
+      await this.firebaseRepository.findAll<ListUserProfileDto>(
+        'user_profiles',
+      );
+    return profiles.find((p) => p.user_id === userId) ?? null;
   }
 
-  async update(userId: string, profile: UpdateUserProfileDto): Promise<ListUserProfileDto | null> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>('user_profiles');
-    const existing = profiles.find(p => p.user_id === userId);
+  async update(
+    userId: string,
+    profile: UpdateUserProfileDto,
+  ): Promise<ListUserProfileDto | null> {
+    const profiles =
+      await this.firebaseRepository.findAll<ListUserProfileDto>(
+        'user_profiles',
+      );
+    const existing = profiles.find((p) => p.user_id === userId);
     if (existing) {
-      return await this.firebaseRepository.update('user_profiles', existing.id, profile) as unknown as ListUserProfileDto;
+      return (await this.firebaseRepository.update(
+        'user_profiles',
+        existing.id,
+        profile,
+      )) as unknown as ListUserProfileDto;
     }
     return null;
   }
 
   async delete(userId: string): Promise<void> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>('user_profiles');
-    const existing = profiles.find(p => p.user_id === userId);
+    const profiles =
+      await this.firebaseRepository.findAll<ListUserProfileDto>(
+        'user_profiles',
+      );
+    const existing = profiles.find((p) => p.user_id === userId);
     if (existing) {
       await this.firebaseRepository.delete('user_profiles', existing.id);
     }

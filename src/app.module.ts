@@ -9,7 +9,11 @@ import firebaseConfig from './core/db/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true, load: [firebaseConfig] }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      load: [firebaseConfig],
+    }),
     PostsModule,
     UserProfileModule,
     FirebaseModule,
