@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './core/db/firebase.module';
 import firebaseConfig from './core/db/config';
 
@@ -18,6 +19,7 @@ import firebaseConfig from './core/db/config';
     PostsModule,
     UserProfileModule,
     UserModule,
+    AuthModule,
     FirebaseModule,
   ],
   controllers: [AppController],

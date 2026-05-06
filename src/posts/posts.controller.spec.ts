@@ -19,6 +19,7 @@ describe('PostsController', () => {
     seniority: 'Senior',
     salary: null,
     technologies: ['TypeScript'],
+    postId: '123',
   };
 
   beforeEach(async () => {
