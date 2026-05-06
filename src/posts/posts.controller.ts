@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
-import { CreatePostsDto } from './dto/create-posts.dto';
 import { PipelineService } from './pipeline/pipeline.service';
+import { ProcessPostsDto } from './dto/process-posts.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -9,7 +9,7 @@ export class PostsController {
   constructor(private readonly pipelineService: PipelineService) {}
 
   @Post()
-  async create(@Body() createPostsDto: any) {
+  async create(@Body() createPostsDto: ProcessPostsDto) {
     createPostsDto.posts.forEach((post) => {
       this.logger.log(`Received post: ${post.postId}`);
     });

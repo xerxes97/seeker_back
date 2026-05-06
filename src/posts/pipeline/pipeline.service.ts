@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreatePostDto } from '../dto/create-post.dto';
 import { OcrService } from '../services/ocr.service';
 import { AiService, JobExtractionResult } from '../services/ai.service';
+import { CreatePostDto } from '../dto/process-posts.dto';
 
 @Injectable()
 export class PipelineService {
