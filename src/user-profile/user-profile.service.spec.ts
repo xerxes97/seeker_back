@@ -24,14 +24,11 @@ describe('UserProfileService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserProfileService,
-        UserProfileRepositoryImpl,
-      ],
+      providers: [UserProfileService, UserProfileRepositoryImpl],
     }).compile();
 
     service = module.get<UserProfileService>(UserProfileService);
-    mockRepo = module.get(UserProfileRepositoryImpl) as any;
+    mockRepo = module.get(UserProfileRepositoryImpl);
   });
 
   it('should save profile and return the saved object', async () => {
@@ -43,13 +40,13 @@ describe('UserProfileService', () => {
       skills: ['javascript', 'typescript'],
       roles: ['Developer'],
       experience_years: 3,
-      seniority: 'mid' as any,
+      seniority: 'mid',
     };
 
     const result = await service.saveProfile('user-123', dto);
     expect(result).toBeDefined();
-    expect(result!.user_id).toBe('user-123');
-    expect(result!.skills).toEqual(['javascript', 'typescript']);
+    expect(result.user_id).toBe('user-123');
+    expect(result.skills).toEqual(['javascript', 'typescript']);
   });
 
   it('should overwrite existing profile on save', async () => {
@@ -61,7 +58,7 @@ describe('UserProfileService', () => {
       experience_years: 1,
       seniority: 'junior',
     };
-    
+
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
     mockRepo.save.mockResolvedValue(undefined);
 
@@ -70,12 +67,12 @@ describe('UserProfileService', () => {
       skills: ['new-skill'],
       roles: ['New Role'],
       experience_years: 2,
-      seniority: 'mid' as any,
+      seniority: 'mid',
     };
 
     const result = await service.saveProfile('user-123', dto);
     expect(result).toBeDefined();
-    expect(result!.skills).toEqual(['new-skill']);
+    expect(result.skills).toEqual(['new-skill']);
   });
 
   it('should return null when profile not found', async () => {
@@ -94,7 +91,7 @@ describe('UserProfileService', () => {
       experience_years: 3,
       seniority: 'mid',
     };
-    
+
     mockRepo.findByUserId.mockResolvedValue(profile);
 
     const result = await service.getProfile('user-123');
@@ -132,7 +129,9 @@ describe('UserProfileService', () => {
       skills: ['updated-skill'],
     };
 
-    await expect(service.updateProfile('non-existent', updateDto)).rejects.toThrow('Profile not found');
+    await expect(
+      service.updateProfile('non-existent', updateDto),
+    ).rejects.toThrow('Profile not found');
   });
 
   it('should delete profile', async () => {

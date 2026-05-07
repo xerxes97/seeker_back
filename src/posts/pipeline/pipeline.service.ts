@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreatePostDto } from '../dto/create-post.dto';
 import { OcrService } from '../services/ocr.service';
 import { AiService, JobExtractionResult } from '../services/ai.service';
+import { CreatePostDto } from '../dto/process-posts.dto';
 
 @Injectable()
 export class PipelineService {
@@ -12,7 +12,7 @@ export class PipelineService {
     private readonly aiService: AiService,
   ) {}
 
-  async processPost(post: CreatePostDto): Promise<JobExtractionResult | null> {
+  async processPost(post: CreatePostDto, userId?: string): Promise<JobExtractionResult | null> {
     try {
       this.logger.log(`Processing post ${post.postId}`);
       let fullText = post.text;
@@ -26,6 +26,7 @@ export class PipelineService {
       }
 
       const result = await this.aiService.processText(post.postId, fullText);
+      if (!userId) return result ? { ...result, postId: post.postId } : null;
       this.logger.log(`Post ${post.postId} processed successfully`);
       return result ? { ...result, postId: post.postId } : null;
     } catch (error) {
@@ -40,10 +41,11 @@ export class PipelineService {
 
   async processPosts(
     posts: CreatePostDto[],
+    userId?: string,
   ): Promise<Array<JobExtractionResult | null>> {
     const results: Array<JobExtractionResult | null> = [];
     for (const post of posts) {
-      const result = await this.processPost(post);
+      const result = await this.processPost(post, userId);
       results.push(result);
     }
     return results;

@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostsController } from './posts.controller';
-import { ValidationPipe } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
-import { CreatePostsDto } from './dto/create-posts.dto';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import { ProcessPostsDto } from './dto/process-posts.dto';
 import { PipelineService } from './pipeline/pipeline.service';
 import { JobExtractionResult } from './services/ai.service';
 
@@ -19,6 +18,7 @@ describe('PostsController', () => {
     seniority: 'Senior',
     salary: null,
     technologies: ['TypeScript'],
+    postId: '123',
   };
 
   beforeEach(async () => {
@@ -76,28 +76,28 @@ describe('ValidationPipe', () => {
   it('should reject missing posts array', async () => {
     const dto = { postId: '123', text: 'hello' };
     await expect(
-      pipe.transform(dto, { type: 'body', metatype: CreatePostsDto }),
+      pipe.transform(dto, { type: 'body', metatype: ProcessPostsDto }),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('should reject invalid post in array', async () => {
     const dto = { posts: [{ text: 'hello' }] };
     await expect(
-      pipe.transform(dto, { type: 'body', metatype: CreatePostsDto }),
+      pipe.transform(dto, { type: 'body', metatype: ProcessPostsDto }),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('should reject array with invalid post type', async () => {
     const dto = { posts: ['invalid'] };
     await expect(
-      pipe.transform(dto, { type: 'body', metatype: CreatePostsDto }),
+      pipe.transform(dto, { type: 'body', metatype: ProcessPostsDto }),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('should accept valid array payload', async () => {
     const dto = { posts: [{ postId: '123', text: 'hello', images: ['img1'] }] };
     await expect(
-      pipe.transform(dto, { type: 'body', metatype: CreatePostsDto }),
+      pipe.transform(dto, { type: 'body', metatype: ProcessPostsDto }),
     ).resolves.toEqual(dto);
   });
 });
