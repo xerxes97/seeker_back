@@ -1,8 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { DocumentData } from 'firebase-admin/firestore';
+import { DocumentData, FieldPath, WhereFilterOp } from 'firebase-admin/firestore';
 
 type WithId<T> = T & { id: string };
+
+type params = {
+  field: string | FieldPath,
+  op: WhereFilterOp,
+  value: unknown
+}
 
 @Injectable()
 export class FirebaseRepository {
@@ -44,15 +50,20 @@ export class FirebaseRepository {
 
   async findBy<T>(
     collection: string,
-    param: any[],
+    param: params[],
     limit: number = 1,
   ): Promise<T[]> {
-    const doc = await this.db
+    let doc: any = this.db
       .collection(collection)
-      .where(param)
-      .limit(limit)
+
+    if (param.length > 0) {
+      param.forEach((p: params) => {
+        doc = doc.where(p.field, p.op, p.value);
+      });
+    }
+    doc = await doc.limit(limit)
       .get();
-    return doc.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as T[];
+    return doc.docs.map((doc: any) => ({ id: doc.id, ...doc.data() })) as T[];
   }
 
   async update<T extends DocumentData>(

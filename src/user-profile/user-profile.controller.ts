@@ -16,7 +16,7 @@ import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ListUserProfileDto } from './dto/list-user-profile.dto';
 
 @ApiTags('user-profile')
-@Controller('user/profile')
+@Controller('user-profile')
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 

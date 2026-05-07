@@ -13,6 +13,9 @@ export class UserService {
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<ListUserDto> {
+    const now = new Date();
+    dto.created_at = now;
+    dto.updated_at = now;
     const user = await this.repo.create(dto);
     await this.userProfileService.saveProfile(user.id, { user_id: user.id });
     return user;

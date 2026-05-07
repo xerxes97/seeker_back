@@ -21,6 +21,14 @@ export class CreateUserProfileDto {
   @IsUUID()
   user_id: string;
 
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  lastname?: string;
+
   @IsArray()
   @IsString({ each: true })
   skills?: string[];
