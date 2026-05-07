@@ -1,7 +1,7 @@
 import { IsArray, ValidateNested, IsString, IsOptional, ArrayNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class CreatePostDto {
+export class PostDto {
   @IsString()
   postId: string;
 
@@ -17,6 +17,6 @@ export class CreatePostDto {
 export class ProcessPostsDto {
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreatePostDto)
-  posts: CreatePostDto[];
+  @Type(() => PostDto)
+  posts: PostDto[];
 }

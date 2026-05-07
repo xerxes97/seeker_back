@@ -1,23 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Groq from 'groq-sdk';
-
-export interface JobExtractionResult {
-  postId: string;
-  is_job: boolean | null;
-  position: string | null;
-  company: string | null;
-  location: string | null;
-  modality: string | null;
-  seniority: string | null;
-  salary: {
-    min: number | null;
-    max: number | null;
-    currency: string | null;
-    period: string | null;
-  } | null;
-  technologies: string[];
-}
+import { JobExtractionResult } from 'src/posts/dto/ia.dto';
 
 @Injectable()
 export class AiService {
@@ -52,7 +36,7 @@ export class AiService {
 
   private async extractJobInfo(text: string): Promise<JobExtractionResult> {
     const prompt = `Classify and extract job data. Return JSON:
-is_job, position, company, location, modality, seniority, salary, technologies[].
+is_job, position, company, location, modality, experience_years, salary, skills[], contact.
 
 Modality: remote|hybrid|onsite.
 Salary: {min, max, currency (USD|EUR|COP), period (hour|month|year)}.
@@ -80,11 +64,12 @@ Text: ${text}`;
       company: parsed.company || null,
       location: parsed.location || null,
       modality: parsed.modality || null,
-      seniority: parsed.seniority || null,
+      experience_years: parsed.experience_years || null,
       salary: parsed.salary ?? null,
-      technologies: Array.isArray(parsed.technologies)
-        ? parsed.technologies
+      skills: Array.isArray(parsed.skills)
+        ? parsed.skills
         : [],
+      score: null,
     };
   }
 

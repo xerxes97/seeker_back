@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PipelineService } from './pipeline.service';
-import { OcrService } from '../services/ocr.service';
-import { AiService } from '../services/ai.service';
+import { PipelineService } from './post.service';
+import { OcrService } from './AIServices/ocr.service';
+import { AiService } from './AIServices/ai.service';
 import { CreatePostDto } from '../dto/create-post.dto';
-import { JobExtractionResult } from '../services/ai.service';
+import { JobExtractionResult } from './AIServices/ai.service';
 
 describe('PipelineService', () => {
   let pipelineService: PipelineService;
