@@ -1,18 +1,28 @@
 import { Module } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
-import { APP_PIPE } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { FirebaseModule } from './core/db/firebase.module';
+import firebaseConfig from './core/db/config';
 
 @Module({
-  imports: [PostsModule],
-  controllers: [AppController],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useFactory: () =>
-        new ValidationPipe({ whitelist: true, transform: true }),
-    },
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      load: [firebaseConfig],
+    }),
+    PostsModule,
+    UserProfileModule,
+    UserModule,
+    AuthModule,
+    FirebaseModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
