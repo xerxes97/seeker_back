@@ -14,7 +14,7 @@ export interface JobExtractionResult {
   company: string | null;
   location: string | null;
   modality: Modality | null;
-  experience_years: string | null;
+  experience_years: number | null;
   salary: ISalary | null;
   skills: string[];
   score: number | null;

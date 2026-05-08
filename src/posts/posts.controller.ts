@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { ProcessPostsDto } from './dto/process-posts.dto';
-import { GetUserId } from 'src/auth/decorators/get-user.decorator';
+import { GetUserId } from '../auth/decorators/get-user.decorator';
 import { PostService } from './services/post.service';
 
 @Controller('posts')
