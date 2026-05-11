@@ -7,7 +7,7 @@ import Fuse from 'fuse.js';
 @Injectable()
 export class MatchingService {
   calculateScore(jobDetail: JobExtractionResult, profile: ListUserProfileDto): number {
-    const { modality, salary, skills, experience_years, is_job } = jobDetail;
+    const { modality, salary, skills, experience_years, is_job, location } = jobDetail;
     const { modality: profileModality, salaryMin, salaryMax, experience_years: profileExperienceYears, location: profileLocation, department: profileDepartment } = profile;
     const scoreValues: IMatch = {
       skills: { value: 0, weight: 0.6 },
@@ -17,17 +17,21 @@ export class MatchingService {
       location: { value: 0.1, weight: 0.1 },
     };
     if (!is_job) return 0;
+    // verify modality
     if (modality && profileModality) {
       const modalityScore = this.calculateModalityScore(modality, profileModality);
       if (modalityScore === 0) return 0;
       scoreValues.modality.value = modalityScore;
     }
+    // verify salary
     if (salary && salaryMin) {
       scoreValues.salary.value = this.calculateSalaryScore(salary, salaryMin, salaryMax);
     }
+    // verify experience
     if (experience_years && profileExperienceYears) {
       scoreValues.experience.value = this.calculateExperienceScore(experience_years, profileExperienceYears);
     }
+    // verify skills
     if (skills && profile.skills) {
       scoreValues.skills.value = this.calculateSkillsScore(skills, profile.skills);
     }
