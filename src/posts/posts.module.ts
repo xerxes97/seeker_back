@@ -10,7 +10,12 @@ import { MatchingModule } from 'src/matching/matching.module';
 
 @Module({
   controllers: [PostsController],
-  providers: [OcrService, AiService, PostService, PostRepositoryImpl],
+  providers: [
+    OcrService,
+    AiService,
+    PostService,
+    { provide: 'PostRepository', useClass: PostRepositoryImpl },
+  ],
   exports: [PostService],
   imports: [FirebaseModule, UserProfileModule, MatchingModule],
 })

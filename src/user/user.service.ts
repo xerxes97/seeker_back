@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { UserRepositoryImpl } from './repository/user.repository';
+import { Injectable, Inject } from '@nestjs/common';
+import { UserRepository } from './interfaces/repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
@@ -8,7 +8,7 @@ import { UserProfileService } from '../user-profile/user-profile.service';
 @Injectable()
 export class UserService {
   constructor(
-    private readonly repo: UserRepositoryImpl,
+    @Inject('UserRepository') private readonly repo: UserRepository,
     private readonly userProfileService: UserProfileService,
   ) {}
 

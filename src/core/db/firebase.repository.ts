@@ -74,13 +74,14 @@ export class FirebaseRepository {
     ...args: { collection: CollectionType, value?: string }[]
   ): Promise<T[]> {
     let query: any = this.db;
+    const last = args.at(-1)!;
 
-    for (const arg of args) {
-      query = query.collection(arg.collection);
-      if (arg.value) {
-        query = query.doc(arg.value);
-      }
+    for (let i = 0; i < args.length - 1; i++) {
+      const current = args[i];
+      query = query.collection(current.collection).doc(current.value);
     }
+
+    query = query.collection(last.collection);
 
     if (param && param.length > 0) {
       param.forEach((p: params) => {

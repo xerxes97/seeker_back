@@ -35,8 +35,13 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   async findByUserId(userId: string): Promise<ListUserProfileDto | null> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>(Collections.USER_PROFILES);
-    return profiles.find((p) => p.user_id === userId) ?? null;
+    const profiles = await this.firebaseRepository.findBy<ListUserProfileDto>(
+      [{ field: 'user_id', op: '==', value: userId }],
+      1,
+      { collection: Collections.USERS, value: userId },
+      { collection: Collections.USER_PROFILES },
+    );
+    return profiles?.[0] ?? null;
   }
 
   async update(
@@ -46,11 +51,12 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     const [profileFound] = await this.firebaseRepository.findBy<ListUserProfileDto>(
       [{ field: 'user_id', op: '==', value: userId }],
       1,
-      { collection: Collections.USER_PROFILES }
+      { collection: Collections.USERS, value: userId }, { collection: Collections.USER_PROFILES }
     );
     if (profileFound) {
       return (await this.firebaseRepository.update(
         profile,
+        { collection: Collections.USERS, value: userId },
         { collection: Collections.USER_PROFILES, value: profileFound.id },
       )) as unknown as ListUserProfileDto;
     }

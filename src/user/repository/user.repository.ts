@@ -25,7 +25,7 @@ export class UserRepositoryImpl implements UserRepository {
     const users = await this.firebaseRepository.findBy<ListUserDto>(
       [{ field: 'email', op: '==', value: email }],
       1,
-      { collection: Collections.USERS },
+      { collection: Collections.USERS, value: email },
     );
     return users[0] ?? null;
   }

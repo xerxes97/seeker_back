@@ -7,7 +7,10 @@ import { UserProfileModule } from '../user-profile/user-profile.module';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, UserRepositoryImpl],
+  providers: [
+    UserService,
+    { provide: 'UserRepository', useClass: UserRepositoryImpl },
+  ],
   exports: [UserService],
   imports: [FirebaseModule, UserProfileModule],
 })

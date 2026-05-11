@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { OcrService } from './AIServices/ocr.service';
 import { AiService } from './AIServices/ai.service';
 import { PostDto } from '../dto/process-posts.dto';
-import { PostRepositoryImpl } from '../repository/post.repository';
+import { PostRepository } from '../interfaces/repository';
 import { ListPostDto } from '../dto/list-post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UserProfileService } from 'src/user-profile/user-profile.service';
@@ -17,7 +17,7 @@ export class PostService {
   constructor(
     private readonly ocrService: OcrService,
     private readonly aiService: AiService,
-    private readonly repo: PostRepositoryImpl,
+    @Inject('PostRepository') private readonly repo: PostRepository,
     private readonly userProfileService: UserProfileService,
     private readonly matchingService: MatchingService,
   ) { }

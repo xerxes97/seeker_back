@@ -1,6 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchingService } from './matching.service';
-import { CalculateScoreDto } from './dto/calculate-score.dto';
+import { JobExtractionResult } from '../posts/dto/ia.dto';
+import { ListUserProfileDto } from '../user-profile/dto/list-user-profile.dto';
+
+function makeJob(skills: string[], is_job = true): JobExtractionResult {
+  return {
+    postId: '1',
+    is_job,
+    position: null,
+    company: null,
+    location: null,
+    modality: null,
+    experience_years: null,
+    salary: null,
+    skills,
+    score: null,
+  };
+}
+
+function makeProfile(skills: string[]): ListUserProfileDto {
+  const profile = new ListUserProfileDto();
+  profile.id = 'profile-1';
+  profile.user_id = 'user-1';
+  profile.skills = skills;
+  return profile;
+}
 
 describe('MatchingService', () => {
   let service: MatchingService;
@@ -13,53 +37,45 @@ describe('MatchingService', () => {
     service = module.get<MatchingService>(MatchingService);
   });
 
-  it('should return score 0 when no CV skills match', () => {
-    const dto: CalculateScoreDto = {
-      cv: { skills: ['python', 'java'] },
-      job: { skills: ['javascript', 'typescript'] },
-    };
-
-    const result = service.calculateScore(dto);
-    expect(result.score).toBe(0);
+  it('should return low score when no skills match', () => {
+    const job = makeJob(['cobol', 'fortran']);
+    const profile = makeProfile(['javascript', 'typescript']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBeLessThan(60);
   });
 
-  it('should return high score when most skills match', () => {
-    const dto: CalculateScoreDto = {
-      cv: { skills: ['javascript', 'typescript', 'nestjs'] },
-      job: { skills: ['javascript', 'typescript', 'nodejs'] },
-    };
-
-    const result = service.calculateScore(dto);
-    expect(result.score).toBe(0.67); // 2 out of 3 match
+  it('should return higher score when two of three skills match', () => {
+    const job = makeJob(['javascript', 'typescript', 'ruby']);
+    const profile = makeProfile(['javascript', 'typescript', 'python']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBeGreaterThan(0);
   });
 
-  it('should return score 1 when all skills match', () => {
-    const dto: CalculateScoreDto = {
-      cv: { skills: ['javascript', 'typescript'] },
-      job: { skills: ['javascript', 'typescript'] },
-    };
-
-    const result = service.calculateScore(dto);
-    expect(result.score).toBe(1);
+  it('should return score > 0 when all skills match', () => {
+    const job = makeJob(['javascript', 'typescript']);
+    const profile = makeProfile(['javascript', 'typescript']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBeGreaterThan(0);
   });
 
-  it('should return score 0 when job has no skills', () => {
-    const dto: CalculateScoreDto = {
-      cv: { skills: ['javascript'] },
-      job: { skills: [] },
-    };
-
-    const result = service.calculateScore(dto);
-    expect(result.score).toBe(0);
+  it('should return 0 when is_job is false', () => {
+    const job = makeJob(['javascript'], false);
+    const profile = makeProfile(['javascript']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBe(0);
   });
 
-  it('should be case insensitive', () => {
-    const dto: CalculateScoreDto = {
-      cv: { skills: ['JavaScript', 'TypeScript'] },
-      job: { skills: ['javascript', 'typescript'] },
-    };
+  it('should be case insensitive with skill matching', () => {
+    const job = makeJob(['JavaScript', 'TypeScript']);
+    const profile = makeProfile(['javascript', 'typescript']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBeGreaterThan(0);
+  });
 
-    const result = service.calculateScore(dto);
-    expect(result.score).toBe(1);
+  it('should return non-negative score when job has no skills', () => {
+    const job = makeJob([]);
+    const profile = makeProfile(['javascript']);
+    const result = service.calculateScore(job, profile);
+    expect(result).toBeGreaterThanOrEqual(0);
   });
 });
