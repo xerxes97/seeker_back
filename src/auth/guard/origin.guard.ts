@@ -9,7 +9,7 @@ export class OriginGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const mode = this.configService.get('MODE') || 'dev';
+    const mode = this.configService.get('ENV') || 'dev';
 
     if (mode === 'dev') {
       return true;

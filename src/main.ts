@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const mode = configService.get('MODE') || 'dev';
+  const mode = configService.get('ENV') || 'dev';
   const isProd = mode !== 'dev';
 
   app.use(cookieParser());
