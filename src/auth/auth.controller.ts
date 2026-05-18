@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { GetUserId } from './decorators/get-user.decorator';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { getCookieConfig, getCookieOptions } from './config/cookie.config';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -62,18 +63,26 @@ export class AuthController {
       const { access_token } = await this.authService.login(dto);
       const isProd = this.configService.get('ENV') !== 'dev';
 
-      res.cookie('access_token', access_token, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
-        maxAge: 3600000,
-      });
+      res.cookie('access_token', access_token, getCookieConfig(isProd, dto.remember));
 
-      return { success: true };
+      return { success: true, token: access_token, userInfo: { name: 'John Doe' } };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'An error occurred';
       throw new BadRequestException(message);
     }
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiResponse({ status: 200, description: 'User logged out successfully' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    const isProd = this.configService.get('ENV') !== 'dev';
+
+    res.clearCookie('access_token', getCookieOptions(isProd));
+
+    return { success: true };
   }
 }

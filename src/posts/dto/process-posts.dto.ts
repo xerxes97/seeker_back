@@ -1,4 +1,4 @@
-import { IsArray, ValidateNested, IsString, IsOptional, ArrayNotEmpty } from 'class-validator';
+import { IsArray, ValidateNested, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PostDto {
@@ -10,7 +10,6 @@ export class PostDto {
 
   @IsArray()
   @IsOptional()
-  @ArrayNotEmpty()
   images?: string[];
 }
 
