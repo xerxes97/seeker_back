@@ -59,6 +59,7 @@ describe('UserProfileService', () => {
       roles: ['Old Role'],
       experience_years: 1,
       seniority: 'junior',
+      scoreNotification: 50,
     };
 
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
@@ -68,6 +69,7 @@ describe('UserProfileService', () => {
       roles: ['New Role'],
       experience_years: 2,
       seniority: 'mid',
+      scoreNotification: 50,
     });
 
     const dto: CreateUserProfileDto = {

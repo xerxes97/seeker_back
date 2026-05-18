@@ -82,4 +82,8 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsDate()
   deleted_at?: Date;
+
+  @IsOptional()
+  @IsNumber()
+  scoreNotification?: number;
 }

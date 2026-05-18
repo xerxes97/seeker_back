@@ -27,9 +27,13 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
         { collection: Collections.USER_PROFILES, value: existing.id },
       );
     } else {
+      const data = {
+        ...profile,
+        scoreNotification: profile.scoreNotification ?? 50,
+      };
       return await this.firebaseRepository.create<ListUserProfileDto>(
         { collection: Collections.USERS, value: userId },
-        { collection: Collections.USER_PROFILES, value: profile }
+        { collection: Collections.USER_PROFILES, value: data }
       );
     }
   }
