@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OcrService } from './AIServices/ocr.service';
 import { AiService } from './AIServices/ai.service';
 import { PostDto } from '../dto/process-posts.dto';
@@ -9,6 +10,7 @@ import { UserProfileService } from 'src/user-profile/user-profile.service';
 import { ListUserProfileDto } from 'src/user-profile/dto/list-user-profile.dto';
 import { MatchingService } from 'src/matching/matching.service';
 import { JobExtractionResult } from '../dto/ia.dto';
+import { DEFAULT_SCORE_NOTIFICATION } from '../../core/constants/notification.constants';
 
 @Injectable()
 export class PostService {
@@ -20,6 +22,7 @@ export class PostService {
     @Inject('PostRepository') private readonly repo: PostRepository,
     private readonly userProfileService: UserProfileService,
     private readonly matchingService: MatchingService,
+    private readonly configService: ConfigService,
   ) { }
 
   async createPost(dto: CreatePostDto): Promise<ListPostDto> {
@@ -68,9 +71,31 @@ export class PostService {
         this.logger.log(`Post ${post.postId} processed successfully`);
         return result ? { ...result, postId: post.postId } : null;
       }
+      
+      const output: JobExtractionResult = {
+        ...result,
+        postId: post.postId,
+        notify: true,
+      };
+
       const score = this.matchingService.calculateScore(result, profile);
-      this.logger.log(`Post ${post.postId} processed with score ${score}`);
-      return result ? { ...result, postId: post.postId, score } : null;
+      output.score = score;
+
+      const minScoreNotify = this.configService.get<number>('MIN_SCORE_NOTIFY') ?? 15;
+
+      if (score <= minScoreNotify) {
+        output.is_job = false;
+      }
+
+      if (profile) {
+        const threshold = profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION;
+        if (score <= threshold) {
+          output.notify = false;
+        }
+      }
+
+      this.logger.log(`Post ${post.postId} processed successfully`);
+      return output;
     } catch (error) {
       const err = error as Error;
       this.logger.error(

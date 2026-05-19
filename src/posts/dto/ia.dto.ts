@@ -18,4 +18,5 @@ export interface JobExtractionResult {
   salary: ISalary | null;
   skills: string[];
   score: number | null;
+  notify: boolean;
 }

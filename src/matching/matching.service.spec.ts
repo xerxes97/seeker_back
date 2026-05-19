@@ -15,6 +15,7 @@ function makeJob(skills: string[], is_job = true): JobExtractionResult {
     salary: null,
     skills,
     score: null,
+    notify: true,
   };
 }
 

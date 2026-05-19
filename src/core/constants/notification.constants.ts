@@ -1,0 +1,1 @@
+export const DEFAULT_SCORE_NOTIFICATION = 50;

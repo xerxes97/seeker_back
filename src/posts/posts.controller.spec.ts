@@ -30,6 +30,7 @@ describe('PostsController', () => {
     skills: ['TypeScript'],
     score: 0.8,
     postId: '123',
+    notify: true,
   };
 
   beforeEach(async () => {

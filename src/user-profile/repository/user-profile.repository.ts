@@ -5,6 +5,7 @@ import { FirebaseRepository } from '../../core/db/firebase.repository';
 import { CreateUserProfileDto } from '../dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from '../dto/update-user-profile.dto';
 import { Collections } from '../../core/constants/collections.enum';
+import { DEFAULT_SCORE_NOTIFICATION } from '../../core/constants/notification.constants';
 
 @Injectable()
 export class UserProfileRepositoryImpl implements UserProfileRepository {
@@ -29,7 +30,7 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     } else {
       const data = {
         ...profile,
-        scoreNotification: profile.scoreNotification ?? 50,
+        scoreNotification: profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION,
       };
       return await this.firebaseRepository.create<ListUserProfileDto>(
         { collection: Collections.USERS, value: userId },

@@ -70,6 +70,7 @@ Text: ${text}`;
         ? parsed.skills
         : [],
       score: null,
+      notify: true,
     };
   }
 
