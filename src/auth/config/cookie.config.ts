@@ -10,6 +10,7 @@ export function getCookieOptions(isProd: boolean): CookieOptions {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? 'none' : 'lax',
+    path: '/',
   };
 }
 
