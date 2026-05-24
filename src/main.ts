@@ -9,6 +9,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const mode = configService.get('ENV') || 'dev';
+  const origin = configService.get('FRONT_DOMAIN');
   const isProd = mode !== 'dev';
 
   app.use(cookieParser());
@@ -18,7 +19,7 @@ async function bootstrap() {
   app.enableCors(
     isProd
       ? {
-          origin: ['https://your-frontend-domain.com'],
+          origin: [origin],
           methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
           credentials: true,
         }
