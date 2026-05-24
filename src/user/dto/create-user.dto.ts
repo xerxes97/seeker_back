@@ -18,6 +18,10 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(100)

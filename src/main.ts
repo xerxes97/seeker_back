@@ -23,7 +23,9 @@ async function bootstrap() {
           credentials: true,
         }
       : {
-          origin: '*',
+          origin: (origin, callback) => {
+            callback(null, origin);
+          },
           methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
           credentials: true,
         },

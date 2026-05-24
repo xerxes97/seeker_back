@@ -18,7 +18,10 @@ export class UserService {
     dto.updated_at = now;
     dto.scoreAlert ??= 50;
     const user = await this.repo.create(dto);
-    await this.userProfileService.saveProfile(user.id, { user_id: user.id });
+    await this.userProfileService.saveProfile(user.id, {
+      user_id: user.id,
+      name: dto.name,
+    });
     return user;
   }
 

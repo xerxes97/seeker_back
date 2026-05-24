@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'node:crypto';
 import { JWT_EXPIRES_IN, JWT_EXPIRES_IN_REMEMBER } from './config/cookie.config';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     await this.userService.createUser({
       ...dto,
+      name: `user_${crypto.randomBytes(4).toString('hex')}`,
       password: hashedPassword,
     });
 
