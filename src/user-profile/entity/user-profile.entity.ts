@@ -9,5 +9,6 @@ export class UserProfile {
   location?: string;
   department?: string;
   modality?: string[];
+  score_notification?: number;
   updated_at: string;
 }

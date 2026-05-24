@@ -4,6 +4,9 @@ import {
   MinLength,
   IsOptional,
   IsDate,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -13,6 +16,12 @@ export class CreateUserDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  scoreAlert?: number;
 
   @IsOptional()
   @IsDate()

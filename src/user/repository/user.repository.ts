@@ -8,10 +8,10 @@ import { Collections } from '../../core/constants/collections.enum';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
-  constructor(private readonly firebaseRepository: FirebaseRepository) {}
+  constructor(private readonly firebaseRepository: FirebaseRepository) { }
 
   async create(user: CreateUserDto): Promise<ListUserDto> {
-    return await this.firebaseRepository.create(Collections.USERS, user);
+    return await this.firebaseRepository.create({ collection: Collections.USERS, value: user });
   }
 
   async findById(id: string): Promise<ListUserDto | null> {
@@ -23,21 +23,23 @@ export class UserRepositoryImpl implements UserRepository {
 
   async findByEmail(email: string): Promise<ListUserDto | null> {
     const users = await this.firebaseRepository.findBy<ListUserDto>(
-      Collections.USERS,
       [{ field: 'email', op: '==', value: email }],
+      1,
+      { collection: Collections.USERS, value: email },
     );
     return users[0] ?? null;
   }
 
   async update(id: string, user: UpdateUserDto): Promise<ListUserDto | null> {
     return (await this.firebaseRepository.update(
-      Collections.USERS,
-      id,
       user,
+      { collection: Collections.USERS, value: id },
     )) as unknown as ListUserDto;
   }
 
   async delete(id: string): Promise<void> {
-    await this.firebaseRepository.delete(Collections.USERS, id);
+    await this.firebaseRepository.delete(
+      { collection: Collections.USERS, value: id },
+    );
   }
 }

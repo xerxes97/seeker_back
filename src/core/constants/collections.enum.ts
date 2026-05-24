@@ -3,3 +3,6 @@ export enum Collections {
   USER_PROFILES = 'user_profiles',
   POSTS = 'posts',
 }
+
+export type CollectionType = Collections;
+

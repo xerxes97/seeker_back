@@ -47,7 +47,7 @@ describe('AiService', () => {
     jest.clearAllMocks();
   });
 
-  it('should extract job info from valid text', async () => {
+    it('should extract job info from valid text', async () => {
     const mockResponse = {
       choices: [
         {
@@ -58,9 +58,8 @@ describe('AiService', () => {
               company: 'Tech Corp',
               location: 'Remote',
               modality: 'remote',
-              seniority: 'Senior',
               salary: null,
-              technologies: ['TypeScript', 'NestJS'],
+              skills: ['TypeScript', 'NestJS'],
             }),
           },
         },
@@ -78,8 +77,7 @@ describe('AiService', () => {
       company: 'Tech Corp',
       location: 'Remote',
       modality: 'remote',
-      seniority: 'Senior',
-      technologies: ['TypeScript', 'NestJS'],
+      skills: ['TypeScript', 'NestJS'],
     });
   });
 
@@ -94,9 +92,8 @@ describe('AiService', () => {
               company: null,
               location: null,
               modality: null,
-              seniority: null,
               salary: null,
-              technologies: [],
+              skills: [],
             }),
           },
         },
@@ -106,7 +103,7 @@ describe('AiService', () => {
 
     const result = await service.processText('123', 'Some random text');
     expect(result?.position).toBeNull();
-    expect(result?.technologies).toEqual([]);
+    expect(result?.skills).toEqual([]);
   });
 
   it('should handle complex text with consistent structure', async () => {
@@ -120,9 +117,8 @@ describe('AiService', () => {
               company: 'Startup Inc',
               location: 'New York',
               modality: 'onsite',
-              seniority: 'Mid',
               salary: null,
-              technologies: ['React', 'Node.js', 'MongoDB'],
+              skills: ['React', 'Node.js', 'MongoDB'],
             }),
           },
         },
@@ -137,9 +133,8 @@ describe('AiService', () => {
     expect(result).toHaveProperty('position');
     expect(result).toHaveProperty('company');
     expect(result).toHaveProperty('location');
-    expect(result).toHaveProperty('seniority');
-    expect(result).toHaveProperty('technologies');
-    expect(Array.isArray(result?.technologies)).toBe(true);
+    expect(result).toHaveProperty('skills');
+    expect(Array.isArray(result?.skills)).toBe(true);
   });
 
   it('should return null on API error', async () => {

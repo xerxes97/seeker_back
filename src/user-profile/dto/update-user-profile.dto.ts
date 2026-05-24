@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
+import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreateUserProfileDto } from './create-user-profile.dto';
 
-export class UpdateUserProfileDto extends PartialType(CreateUserProfileDto) {}
+export class UpdateUserProfileDto extends PartialType(OmitType(CreateUserProfileDto, ['user_id'])) {}

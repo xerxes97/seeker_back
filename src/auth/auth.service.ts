@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { JWT_EXPIRES_IN, JWT_EXPIRES_IN_REMEMBER } from './config/cookie.config';
 
 @Injectable()
 export class AuthService {
@@ -36,14 +37,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    const userWithPassword = user as unknown as { password: string };
+    
+    const isPasswordValid = await bcrypt.compare(dto.password, userWithPassword.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const expiresIn = dto.remember ? JWT_EXPIRES_IN_REMEMBER : JWT_EXPIRES_IN;
     const payload = { sub: user.id, email: user.email };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, { expiresIn }),
     };
   }
 }

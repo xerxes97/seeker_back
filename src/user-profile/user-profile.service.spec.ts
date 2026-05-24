@@ -1,39 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserProfileService } from './user-profile.service';
-import { UserProfileRepositoryImpl } from './repository/user-profile.repository';
+import { UserProfileRepository } from './interfaces/repository';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ListUserProfileDto } from './dto/list-user-profile.dto';
 
-jest.mock('./repository/user-profile.repository', () => {
-  return {
-    UserProfileRepositoryImpl: jest.fn().mockImplementation(() => {
-      return {
-        save: jest.fn(),
-        findByUserId: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      };
-    }),
-  };
-});
+type MockRepo = {
+  [K in keyof UserProfileRepository]: jest.Mock;
+};
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
-  let mockRepo: any;
+  let mockRepo: MockRepo;
 
   beforeEach(async () => {
+    mockRepo = {
+      save: jest.fn(),
+      findByUserId: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserProfileService, UserProfileRepositoryImpl],
+      providers: [
+        UserProfileService,
+        { provide: 'UserProfileRepository', useValue: mockRepo },
+      ],
     }).compile();
 
     service = module.get<UserProfileService>(UserProfileService);
-    mockRepo = module.get(UserProfileRepositoryImpl);
   });
 
   it('should save profile and return the saved object', async () => {
-    mockRepo.findByUserId.mockResolvedValue(null);
-    mockRepo.save.mockResolvedValue(undefined);
+    mockRepo.save.mockResolvedValue({
+      user_id: 'user-123',
+      skills: ['javascript', 'typescript'],
+    });
 
     const dto: CreateUserProfileDto = {
       user_id: 'user-123',
@@ -57,10 +59,18 @@ describe('UserProfileService', () => {
       roles: ['Old Role'],
       experience_years: 1,
       seniority: 'junior',
+      scoreNotification: 50,
     };
 
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
-    mockRepo.save.mockResolvedValue(undefined);
+    mockRepo.save.mockResolvedValue({
+      user_id: 'user-123',
+      skills: ['new-skill'],
+      roles: ['New Role'],
+      experience_years: 2,
+      seniority: 'mid',
+      scoreNotification: 50,
+    });
 
     const dto: CreateUserProfileDto = {
       user_id: 'user-123',
@@ -109,7 +119,10 @@ describe('UserProfileService', () => {
     };
 
     mockRepo.findByUserId.mockResolvedValue(existingProfile);
-    mockRepo.update.mockResolvedValue(undefined);
+    mockRepo.update.mockResolvedValue({
+      skills: ['updated-skill'],
+      experience_years: 2,
+    });
 
     const updateDto: UpdateUserProfileDto = {
       skills: ['updated-skill'],
@@ -122,16 +135,15 @@ describe('UserProfileService', () => {
     expect(result!.experience_years).toBe(2);
   });
 
-  it('should throw error when updating non-existent profile', async () => {
-    mockRepo.findByUserId.mockResolvedValue(null);
+  it('should return null when updating non-existent profile', async () => {
+    mockRepo.update.mockResolvedValue(null);
 
     const updateDto: UpdateUserProfileDto = {
       skills: ['updated-skill'],
     };
 
-    await expect(
-      service.updateProfile('non-existent', updateDto),
-    ).rejects.toThrow('Profile not found');
+    const result = await service.updateProfile('non-existent', updateDto);
+    expect(result).toBeNull();
   });
 
   it('should delete profile', async () => {

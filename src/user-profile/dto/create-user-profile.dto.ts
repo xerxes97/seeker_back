@@ -9,12 +9,13 @@ import {
   IsOptional,
   ArrayMaxSize,
   IsDate,
+  IsNumber,
 } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
 export type Seniority = (typeof SENIORITY_VALUES)[number];
 
-const MODALITY_VALUES = ['onHouse', 'presential', 'hybrid'] as const;
+const MODALITY_VALUES = ['remote', 'hybrid', 'onsite'] as const;
 export type Modality = (typeof MODALITY_VALUES)[number];
 
 export class CreateUserProfileDto {
@@ -57,6 +58,14 @@ export class CreateUserProfileDto {
   @IsString()
   department?: string;
 
+  @IsNumber()
+  @IsOptional()
+  salaryMin?: number;
+
+  @IsNumber()
+  @IsOptional()
+  salaryMax?: number;
+
   @IsOptional()
   @IsArray()
   @IsIn(MODALITY_VALUES, { each: true })
@@ -73,4 +82,8 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsDate()
   deleted_at?: Date;
+
+  @IsOptional()
+  @IsNumber()
+  scoreNotification?: number;
 }

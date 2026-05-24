@@ -6,7 +6,10 @@ import { FirebaseModule } from 'src/core/db/firebase.module';
 
 @Module({
   controllers: [UserProfileController],
-  providers: [UserProfileService, UserProfileRepositoryImpl],
+  providers: [
+    UserProfileService,
+    { provide: 'UserProfileRepository', useClass: UserProfileRepositoryImpl },
+  ],
   exports: [UserProfileService],
   imports: [FirebaseModule],
 })
