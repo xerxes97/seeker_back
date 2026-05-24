@@ -10,6 +10,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const mode = configService.get('ENV') || 'dev';
   const origin = configService.get('FRONT_DOMAIN');
+  console.log('Origin:', origin);
   const isProd = mode !== 'dev';
 
   app.use(cookieParser());
