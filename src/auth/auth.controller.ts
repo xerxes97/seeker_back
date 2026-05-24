@@ -62,6 +62,7 @@ export class AuthController {
     try {
       const { access_token } = await this.authService.login(dto);
       const isProd = this.configService.get('ENV') !== 'dev';
+      console.log('Cookie config:', getCookieConfig(isProd, dto.remember), isProd);
 
       res.cookie('access_token', access_token, getCookieConfig(isProd, dto.remember));
 
