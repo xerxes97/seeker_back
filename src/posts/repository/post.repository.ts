@@ -7,10 +7,13 @@ import { Collections } from '../../core/constants/collections.enum';
 
 @Injectable()
 export class PostRepositoryImpl implements PostRepository {
-  constructor(private readonly firebaseRepository: FirebaseRepository) { }
+  constructor(private readonly firebaseRepository: FirebaseRepository) {}
 
   async create(post: CreatePostDto): Promise<ListPostDto> {
-    return await this.firebaseRepository.create({ collection: Collections.POSTS, value: post });
+    return await this.firebaseRepository.create({
+      collection: Collections.POSTS,
+      value: post,
+    });
   }
 
   async findById(id: string): Promise<ListPostDto | null> {
@@ -21,8 +24,9 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.firebaseRepository.delete(
-      { collection: Collections.POSTS, value: id },
-    );
+    await this.firebaseRepository.delete({
+      collection: Collections.POSTS,
+      value: id,
+    });
   }
 }

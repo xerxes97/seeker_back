@@ -1,10 +1,10 @@
-import { Modality } from "src/user-profile/dto/create-user-profile.dto";
+import { Modality } from 'src/user-profile/dto/create-user-profile.dto';
 
 export interface ISalary {
-    min: number | null;
-    max: number | null;
-    currency: string | null;
-    period: string | null;
+  min: number | null;
+  max: number | null;
+  currency: string | null;
+  period: string | null;
 }
 
 export interface JobExtractionResult {

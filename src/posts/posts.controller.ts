@@ -12,7 +12,10 @@ export class PostsController {
   constructor(private readonly postService: PostService) {}
 
   @Post()
-  async create(@Body() createPostsDto: ProcessPostsDto, @GetUserId() userId: string) {
+  async create(
+    @Body() createPostsDto: ProcessPostsDto,
+    @GetUserId() userId: string,
+  ) {
     createPostsDto.posts.forEach((post) => {
       this.logger.log(`Received post: ${post.postId}`);
     });

@@ -66,9 +66,7 @@ Text: ${text}`;
       modality: parsed.modality || null,
       experience_years: parsed.experience_years || null,
       salary: parsed.salary ?? null,
-      skills: Array.isArray(parsed.skills)
-        ? parsed.skills
-        : [],
+      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
       score: null,
       notify: true,
     };

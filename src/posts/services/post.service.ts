@@ -23,7 +23,7 @@ export class PostService {
     private readonly userProfileService: UserProfileService,
     private readonly matchingService: MatchingService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async createPost(dto: CreatePostDto): Promise<ListPostDto> {
     return this.repo.create(dto);
@@ -53,7 +53,10 @@ export class PostService {
     return results;
   }
 
-  private async processPost(post: PostDto, profile: ListUserProfileDto | null): Promise<JobExtractionResult | null> {
+  private async processPost(
+    post: PostDto,
+    profile: ListUserProfileDto | null,
+  ): Promise<JobExtractionResult | null> {
     try {
       this.logger.log(`Processing post ${post.postId}`);
       let fullText = post.text;
@@ -71,7 +74,7 @@ export class PostService {
         this.logger.log(`Post ${post.postId} processed successfully`);
         return result ? { ...result, postId: post.postId } : null;
       }
-      
+
       const output: JobExtractionResult = {
         ...result,
         postId: post.postId,
@@ -81,14 +84,16 @@ export class PostService {
       const score = this.matchingService.calculateScore(result, profile);
       output.score = score;
 
-      const minScoreNotify = this.configService.get<number>('MIN_SCORE_NOTIFY') ?? 15;
+      const minScoreNotify =
+        this.configService.get<number>('MIN_SCORE_NOTIFY') ?? 15;
 
       if (score <= minScoreNotify) {
         output.is_job = false;
       }
 
       if (profile) {
-        const threshold = profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION;
+        const threshold =
+          profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION;
         if (score <= threshold) {
           output.notify = false;
         }

@@ -1,12 +1,12 @@
 interface IMatchItem {
-    value: number;
-    weight: number;
+  value: number;
+  weight: number;
 }
 
 export interface IMatch {
-    modality: IMatchItem;
-    skills: IMatchItem;
-    salary: IMatchItem;
-    experience: IMatchItem;
-    location: IMatchItem;
+  modality: IMatchItem;
+  skills: IMatchItem;
+  salary: IMatchItem;
+  experience: IMatchItem;
+  location: IMatchItem;
 }

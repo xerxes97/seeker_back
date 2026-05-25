@@ -7,7 +7,8 @@ import { ListUserProfileDto } from './dto/list-user-profile.dto';
 @Injectable()
 export class UserProfileService {
   constructor(
-    @Inject('UserProfileRepository') private readonly repo: UserProfileRepository,
+    @Inject('UserProfileRepository')
+    private readonly repo: UserProfileRepository,
   ) {}
 
   async saveProfile(

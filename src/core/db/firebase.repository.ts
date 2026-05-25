@@ -1,16 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain } from 'class-transformer';
 import * as admin from 'firebase-admin';
-import { DocumentData, FieldPath, WhereFilterOp } from 'firebase-admin/firestore';
+import {
+  DocumentData,
+  FieldPath,
+  WhereFilterOp,
+} from 'firebase-admin/firestore';
 import { CollectionType } from '../constants/collections.enum';
 
 type WithId<T> = T & { id: string };
 
 type params = {
-  field: string | FieldPath,
-  op: WhereFilterOp,
-  value: unknown
-}
+  field: string | FieldPath;
+  op: WhereFilterOp;
+  value: unknown;
+};
 
 interface ICollectionQuery {
   collection: CollectionType;
@@ -31,10 +35,12 @@ export class FirebaseRepository {
     return this.db.collection(name);
   }
 
-  async create<T extends DocumentData>(...args: ICollectionQuery[]): Promise<WithId<T>> {
+  async create<T extends DocumentData>(
+    ...args: ICollectionQuery[]
+  ): Promise<WithId<T>> {
     const last = args.at(-1)!;
     const plain = instanceToPlain(last.value);
-    let query: any = this.db
+    let query: any = this.db;
 
     for (let i = 0; i < args.length - 1; i++) {
       const current = args[i];
@@ -46,7 +52,7 @@ export class FirebaseRepository {
     return { id: result.id, ...plain } as WithId<T>;
   }
 
-  async findAll<T>(collection: string, param?: params[],): Promise<T[]> {
+  async findAll<T>(collection: string, param?: params[]): Promise<T[]> {
     let query: any = this.db.collection(collection);
     if (param && param.length > 0) {
       param.forEach((p: params) => {
@@ -71,7 +77,7 @@ export class FirebaseRepository {
   async findBy<T>(
     param?: params[],
     limit: number = 1,
-    ...args: { collection: CollectionType, value?: string }[]
+    ...args: { collection: CollectionType; value?: string }[]
   ): Promise<T[]> {
     let query: any = this.db;
     const last = args.at(-1)!;
@@ -109,7 +115,9 @@ export class FirebaseRepository {
     return { id: last.value, ...plain } as WithId<T>;
   }
 
-  async delete(...args: { collection: CollectionType, value: string }[]): Promise<void> {
+  async delete(
+    ...args: { collection: CollectionType; value: string }[]
+  ): Promise<void> {
     let query: any = this.db;
 
     for (let i = 0; i < args.length - 1; i++) {
