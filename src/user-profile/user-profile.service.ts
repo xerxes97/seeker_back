@@ -16,21 +16,25 @@ export class UserProfileService {
   ) {}
 
   async processCv(
+    userId: string,
     buffer: Buffer,
     originalname: string,
-  ): Promise<Record<string, unknown>> {
-    const modules = await this.cvParser.processCv(buffer, originalname);
+  ): Promise<ListUserProfileDto | null> {
+    const {personalInfo, skills} = await this.cvParser.processCv(buffer, originalname);
 
     this.logger.log('=== CV PARSED DATA ===');
     this.logger.log(`File: ${originalname}`);
     this.logger.log(`Size: ${(buffer.length / 1024).toFixed(1)} KB`);
     this.logger.log('--- Modules ---');
-    for (const [key, value] of Object.entries(modules)) {
-      this.logger.log(`${key}: ${JSON.stringify(value, null, 2)}`);
-    }
+    // for (const [key, value] of Object.entries(modules)) {
+    //   this.logger.log(`${key}: ${JSON.stringify(value, null, 2)}`);
+    // }
     this.logger.log('=== END CV ===');
-
-    return modules;
+    return await this.updateProfile(userId, {
+      name: personalInfo?.name || '',
+      // lastname: personalInfo?. || '',
+      skills: skills?.parsed || [],
+    });
   }
 
   async saveProfile(

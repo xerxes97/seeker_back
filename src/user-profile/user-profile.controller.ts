@@ -67,12 +67,12 @@ export class UserProfileController {
   })
   @ApiResponse({ status: 200, description: 'CV parsed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid file or no file uploaded' })
-  async uploadCv(@UploadedFile() file: Express.Multer.File) {
+  async uploadCv(@UploadedFile() file: Express.Multer.File, @GetUserId() userId: string) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    return this.userProfileService.processCv(file.buffer, file.originalname);
+    return this.userProfileService.processCv(userId, file.buffer, file.originalname);
   }
 
   @Put()

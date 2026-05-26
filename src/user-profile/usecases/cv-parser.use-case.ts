@@ -1,98 +1,20 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PDFParse } from 'pdf-parse';
-
-interface MammothResult {
-  value: string;
-  messages: unknown[];
-}
-
-interface ExperienceEntry {
-  position: string;
-  company: string;
-  dates: string;
-  description: string;
-}
-
-interface EducationEntry {
-  degree: string;
-  institution: string;
-  dates: string;
-}
-
-const SECTION_HEADERS: { key: string; patterns: RegExp[] }[] = [
-  {
-    key: 'summary',
-    patterns: [
-      /summary/i,
-      /profile/i,
-      /objective/i,
-      /about\s+me/i,
-      /resumen/i,
-      /perfil/i,
-      /objetivo/i,
-    ],
-  },
-  {
-    key: 'experience',
-    patterns: [
-      /experience/i,
-      /employment/i,
-      /work\s+history/i,
-      /professional\s+background/i,
-      /experiencia/i,
-      /trabajo/i,
-      /historial\s+laboral/i,
-      /antecedentes\s+profesionales/i,
-    ],
-  },
-  {
-    key: 'education',
-    patterns: [
-      /education/i,
-      /academic/i,
-      /qualifications/i,
-      /training/i,
-      /educación/i,
-      /formación\s+académica/i,
-      /formación/i,
-      /estudios/i,
-    ],
-  },
-  {
-    key: 'skills',
-    patterns: [
-      /skills/i,
-      /competencies/i,
-      /technologies/i,
-      /expertise/i,
-      /habilidades/i,
-      /competencias/i,
-      /aptitudes/i,
-      /conocimientos/i,
-    ],
-  },
-  { key: 'languages', patterns: [/languages/i, /idiomas/i] },
-  {
-    key: 'certifications',
-    patterns: [
-      /certifications/i,
-      /licenses/i,
-      /credentials/i,
-      /certificaciones/i,
-      /licencias/i,
-      /acreditaciones/i,
-    ],
-  },
-  { key: 'projects', patterns: [/projects/i, /portfolio/i, /proyectos/i] },
-  { key: 'publications', patterns: [/publications/i, /papers/i, /publicaciones/i] },
-];
+import { SECTION_HEADERS } from '../constants';
+import {
+  CvParserOutput,
+  EducationEntry,
+  ExperienceEntry,
+  MammothResult,
+  ParsedCvSections,
+} from '../interfaces';
 
 @Injectable()
 export class CvParserUseCase {
   async processCv(
     buffer: Buffer,
     originalname: string,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<CvParserOutput> {
     const ext = originalname.split('.').pop()?.toLowerCase();
     const text = await this.extractText(buffer, ext);
     return this.parseCvText(text);
@@ -127,7 +49,8 @@ export class CvParserUseCase {
     return mammoth.extractRawText({ buffer });
   }
 
-  private parseCvText(text: string): Record<string, unknown> {
+  private parseCvText(text: string): CvParserOutput {
+    text = text.replace(/--\s*(?:page\s+)?\d+\s+of\s+\d+\s*--/gi, '');
     const sections = this.splitIntoSections(text);
 
     const headerText = sections.__header__ ?? text.slice(0, 500);
@@ -136,7 +59,7 @@ export class CvParserUseCase {
     const linkedIn = this.extractLinkedIn(headerText);
     const name = this.extractName(headerText);
 
-    const modules: Record<string, unknown> = {
+    const modules: CvParserOutput = {
       personalInfo: {
         name,
         email,
@@ -201,10 +124,10 @@ export class CvParserUseCase {
     return modules;
   }
 
-  private splitIntoSections(text: string): Record<string, string> {
+  private splitIntoSections(text: string): ParsedCvSections {
     const lines = text.split('\n');
-    const sections: Record<string, string> = {};
-    let currentSection = '__header__';
+    const sections: ParsedCvSections = {};
+    let currentSection: keyof ParsedCvSections = '__header__';
     const headerLines: string[] = [];
 
     for (const line of lines) {
@@ -216,7 +139,7 @@ export class CvParserUseCase {
           section.patterns.some((p) => p.test(trimmed)) &&
           trimmed.length < 100
         ) {
-          currentSection = section.key;
+          currentSection = section.key as keyof ParsedCvSections;
           sections[currentSection] = sections[currentSection] ?? '';
           matched = true;
           break;

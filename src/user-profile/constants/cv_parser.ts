@@ -1,0 +1,67 @@
+export const SECTION_HEADERS: { key: string; patterns: RegExp[] }[] = [
+  {
+    key: 'summary',
+    patterns: [
+      /summary/i,
+      /profile/i,
+      /objective/i,
+      /about\s+me/i,
+      /resumen/i,
+      /perfil/i,
+      /objetivo/i,
+    ],
+  },
+  {
+    key: 'experience',
+    patterns: [
+      /experience/i,
+      /employment/i,
+      /work\s+history/i,
+      /professional\s+background/i,
+      /experiencia/i,
+      /trabajo/i,
+      /historial\s+laboral/i,
+      /antecedentes\s+profesionales/i,
+    ],
+  },
+  {
+    key: 'education',
+    patterns: [
+      /education/i,
+      /academic/i,
+      /qualifications/i,
+      /training/i,
+      /educación/i,
+      /formación\s+académica/i,
+      /formación/i,
+      /estudios/i,
+    ],
+  },
+  {
+    key: 'skills',
+    patterns: [
+      /skills/i,
+      /competencies/i,
+      /technologies/i,
+      /expertise/i,
+      /habilidades/i,
+      /competencias/i,
+      /aptitudes/i,
+      /conocimientos/i,
+    ],
+  },
+  { key: 'languages', patterns: [/languages/i, /idiomas/i] },
+  {
+    key: 'certifications',
+    patterns: [
+      /certifications/i,
+      /licenses/i,
+      /credentials/i,
+      /certificaciones/i,
+      /licencias/i,
+      /acreditaciones/i,
+    ],
+  },
+  { key: 'projects', patterns: [/projects/i, /portfolio/i, /proyectos/i] },
+  { key: 'publications', patterns: [/publications/i, /papers/i, /publicaciones/i] },
+];
