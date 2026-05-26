@@ -2,12 +2,24 @@ import {
   Controller,
   Get,
   Put,
+  Post,
   Body,
   HttpCode,
   HttpStatus,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { UserProfileService } from './user-profile.service';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ListUserProfileDto } from './dto/list-user-profile.dto';
@@ -29,9 +41,38 @@ export class UserProfileController {
     type: ListUserProfileDto,
   })
   @ApiResponse({ status: 404, description: 'Profile not found' })
-  async getProfile(@GetUserId() userId: string): Promise<ListUserProfileDto | null> {
+  async getProfile(
+    @GetUserId() userId: string,
+  ): Promise<ListUserProfileDto | null> {
     if (!userId) return null;
     return await this.userProfileService.getProfile(userId);
+  }
+
+  @Post('cv')
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Upload CV (PDF/Word) and extract structured data' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'CV file in PDF or Word format',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'CV parsed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid file or no file uploaded' })
+  async uploadCv(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    return this.userProfileService.processCv(file.buffer, file.originalname);
   }
 
   @Put()
