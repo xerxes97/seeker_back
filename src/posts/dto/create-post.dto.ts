@@ -45,6 +45,11 @@ export class CreatePostDto {
   technologies?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  benefits?: string[];
+
+  @IsOptional()
   created_at?: Date;
 
   @IsOptional()

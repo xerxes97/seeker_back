@@ -23,6 +23,17 @@ export class PostRepositoryImpl implements PostRepository {
     );
   }
 
+  async findByIds(ids: string[]): Promise<Map<string, ListPostDto>> {
+    return this.firebaseRepository.findByIds<ListPostDto>(
+      Collections.POSTS,
+      ids,
+    );
+  }
+
+  async set(id: string, post: CreatePostDto): Promise<ListPostDto> {
+    return await this.firebaseRepository.set(Collections.POSTS, id, post);
+  }
+
   async delete(id: string): Promise<void> {
     await this.firebaseRepository.delete({
       collection: Collections.POSTS,

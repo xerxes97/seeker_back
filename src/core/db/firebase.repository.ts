@@ -74,6 +74,28 @@ export class FirebaseRepository {
     return { id: result.id, ...result.data() } as T;
   }
 
+  async findByIds<T>(
+    collection: CollectionType,
+    ids: string[],
+    chunkSize: number = 30,
+  ): Promise<Map<string, T>> {
+    const result = new Map<string, T>();
+
+    for (let i = 0; i < ids.length; i += chunkSize) {
+      const chunk = ids.slice(i, i + chunkSize);
+      const snapshot = await this.db
+        .collection(collection)
+        .where(FieldPath.documentId(), 'in', chunk)
+        .get();
+
+      snapshot.docs.forEach((doc) => {
+        result.set(doc.id, { id: doc.id, ...doc.data() } as T);
+      });
+    }
+
+    return result;
+  }
+
   async findBy<T>(
     param?: params[],
     limit: number = 1,
@@ -113,6 +135,16 @@ export class FirebaseRepository {
     const last = args.at(-1)!;
     await query.collection(last.collection).doc(last.value).update(plain);
     return { id: last.value, ...plain } as WithId<T>;
+  }
+
+  async set<T extends DocumentData>(
+    collection: CollectionType,
+    id: string,
+    data: T,
+  ): Promise<WithId<T>> {
+    const plain = instanceToPlain(data);
+    await this.db.collection(collection).doc(id).set(plain);
+    return { id, ...plain } as WithId<T>;
   }
 
   async delete(

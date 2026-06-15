@@ -4,5 +4,7 @@ import { ListPostDto } from '../dto/list-post.dto';
 export interface PostRepository {
   create(post: CreatePostDto): Promise<ListPostDto>;
   findById(id: string): Promise<ListPostDto | null>;
+  findByIds(ids: string[]): Promise<Map<string, ListPostDto>>;
+  set(id: string, post: CreatePostDto): Promise<ListPostDto>;
   delete(id: string): Promise<void>;
 }

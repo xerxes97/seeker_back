@@ -7,6 +7,12 @@ export interface ISalary {
   period: string | null;
 }
 
+export interface Contact {
+  email: string | null;
+  phone: string | null;
+  link: string | null;
+}
+
 export interface JobExtractionResult {
   postId: string;
   is_job: boolean | null;
@@ -17,6 +23,8 @@ export interface JobExtractionResult {
   experience_years: number | null;
   salary: ISalary | null;
   skills: string[];
+  benefits: string[];
+  contact?: Contact | null;
   score: number | null;
   notify: boolean;
 }
