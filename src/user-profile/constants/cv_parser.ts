@@ -63,5 +63,8 @@ export const SECTION_HEADERS: { key: string; patterns: RegExp[] }[] = [
     ],
   },
   { key: 'projects', patterns: [/projects/i, /portfolio/i, /proyectos/i] },
-  { key: 'publications', patterns: [/publications/i, /papers/i, /publicaciones/i] },
+  {
+    key: 'publications',
+    patterns: [/publications/i, /papers/i, /publicaciones/i],
+  },
 ];

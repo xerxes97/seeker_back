@@ -20,7 +20,10 @@ export class UserProfileService {
     buffer: Buffer,
     originalname: string,
   ): Promise<ListUserProfileDto | null> {
-    const {personalInfo, skills} = await this.cvParser.processCv(buffer, originalname);
+    const { personalInfo, skills } = await this.cvParser.processCv(
+      buffer,
+      originalname,
+    );
 
     this.logger.log('=== CV PARSED DATA ===');
     this.logger.log(`File: ${originalname}`);
