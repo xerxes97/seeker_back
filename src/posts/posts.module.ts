@@ -3,10 +3,10 @@ import { PostsController } from './posts.controller';
 import { OcrService } from './services/AIServices/ocr.service';
 import { AiService } from './services/AIServices/ai.service';
 import { PostRepositoryImpl } from './repository/post.repository';
-import { FirebaseModule } from 'src/core/db/firebase.module';
+import { PrismaModule } from '../core/db/prisma.module';
 import { PostService } from './services/post.service';
-import { UserProfileModule } from 'src/user-profile/user-profile.module';
-import { MatchingModule } from 'src/matching/matching.module';
+import { UserProfileModule } from '../user-profile/user-profile.module';
+import { MatchingModule } from '../matching/matching.module';
 
 @Module({
   controllers: [PostsController],
@@ -17,6 +17,6 @@ import { MatchingModule } from 'src/matching/matching.module';
     { provide: 'PostRepository', useClass: PostRepositoryImpl },
   ],
   exports: [PostService],
-  imports: [FirebaseModule, UserProfileModule, MatchingModule],
+  imports: [PrismaModule, UserProfileModule, MatchingModule],
 })
 export class PostsModule {}

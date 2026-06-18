@@ -7,10 +7,12 @@ export interface UserProfileRepository {
     userId: string,
     profile: CreateUserProfileDto,
   ): Promise<ListUserProfileDto>;
-  findByUserId(userId: string): Promise<ListUserProfileDto | null>;
-  delete(userId: string): Promise<void>;
+  findByUserId(userId: string): Promise<ListUserProfileDto[]>;
+  findById(profileId: string): Promise<ListUserProfileDto | null>;
   update(
-    userId: string,
+    profileId: string,
     profile: UpdateUserProfileDto,
   ): Promise<ListUserProfileDto | null>;
+  delete(profileId: string): Promise<void>;
+  setDefault(userId: string, profileId: string): Promise<void>;
 }

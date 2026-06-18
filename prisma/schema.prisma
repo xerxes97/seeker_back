@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String
+  name       String?
+  scoreAlert Int         @default(50) @map("score_alert")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  profiles   UserProfile[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  name              String?
+  lastname          String?
+  skills            String[]
+  roles             String[]
+  experienceYears   Int       @default(0) @map("experience_years")
+  seniority         Seniority?
+  location          String?
+  department        String?
+  modality          Modality[]
+  scoreNotification Int?      @map("score_notification")
+  salaryMin         Float?    @map("salary_min")
+  salaryMax         Float?    @map("salary_max")
+  isDefault         Boolean   @default(false) @map("is_default")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Post {
+  id           String      @id @default(uuid())
+  externalId   String?     @unique @map("external_id")
+  isJob        Boolean     @map("is_job")
+  position     String
+  company      String
+  location     String?
+  modality     Modality[]
+  seniority    Seniority?
+  salary       Float?
+  technologies String[]
+  benefits     String[]
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@map("posts")
+}
+
+enum Seniority {
+  junior
+  mid
+  senior
+}
+
+enum Modality {
+  remote
+  hybrid
+  onsite
+}

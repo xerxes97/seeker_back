@@ -7,8 +7,7 @@ import { UserProfileModule } from './user-profile/user-profile.module';
 import { MatchingModule } from './matching/matching.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { FirebaseModule } from './core/db/firebase.module';
-import firebaseConfig from './core/db/config';
+import { PrismaModule } from './core/db/prisma.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -16,7 +15,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [firebaseConfig],
     }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
@@ -34,7 +32,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     MatchingModule,
     UserModule,
     AuthModule,
-    FirebaseModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
