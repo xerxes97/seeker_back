@@ -37,12 +37,17 @@ export class CreatePostDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  salary?: number;
+  salaryMin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  salaryMax?: number;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  technologies?: string[];
+  skills?: string[];
 
   @IsOptional()
   @IsArray()

@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "Seniority" AS ENUM ('junior', 'mid', 'senior');
 
@@ -22,6 +19,7 @@ CREATE TABLE "users" (
 
 -- CreateTable
 CREATE TABLE "user_profiles" (
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "name" TEXT,
     "lastname" TEXT,
@@ -35,11 +33,12 @@ CREATE TABLE "user_profiles" (
     "score_notification" INTEGER,
     "salary_min" DOUBLE PRECISION,
     "salary_max" DOUBLE PRECISION,
+    "is_default" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
 
-    CONSTRAINT "user_profiles_pkey" PRIMARY KEY ("user_id")
+    CONSTRAINT "user_profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable

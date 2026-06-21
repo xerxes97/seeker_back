@@ -67,8 +67,9 @@ export class PostRepositoryImpl implements PostRepository {
       location: post.location ?? null,
       modality: (post.modality as any) ?? [],
       seniority: (post.seniority as any) ?? null,
-      salary: post.salary ?? null,
-      technologies: post.technologies ?? [],
+      salaryMin: post.salaryMin ?? null,
+      salaryMax: post.salaryMax ?? null,
+      skills: post.skills ?? [],
       benefits: post.benefits ?? [],
     };
   }
@@ -83,11 +84,12 @@ export class PostRepositoryImpl implements PostRepository {
       location: post.location ?? undefined,
       modality: post.modality,
       seniority: post.seniority,
-      salary: post.salary ?? undefined,
-      technologies: post.technologies,
+      salaryMin: post.salaryMin ?? undefined,
+      salaryMax: post.salaryMax ?? undefined,
+      skills: post.skills,
       benefits: post.benefits,
       created_at: post.createdAt,
       updated_at: post.updatedAt,
-    } as unknown as ListPostDto;
+    };
   }
 }

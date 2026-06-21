@@ -7,14 +7,22 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(uuid())
-  email      String      @unique
-  password   String
-  name       String?
-  scoreAlert Int         @default(50) @map("score_alert")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  profiles   UserProfile[]
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  name              String?
+  scoreAlert        Int       @default(50) @map("score_alert")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  experienceYears   Int?      @default(0) @map("experience_years")
+  location          String?
+  department        String?
+  modality          Modality[]
+  seniority         Seniority?
+  scoreNotification Int?      @map("score_notification")
+  salaryMin         Float?    @map("salary_min")
+  salaryMax         Float?    @map("salary_max")
+  profiles          UserProfile[]
 
   @@map("users")
 }
@@ -26,15 +34,6 @@ model UserProfile {
   lastname          String?
   skills            String[]
   roles             String[]
-  experienceYears   Int       @default(0) @map("experience_years")
-  seniority         Seniority?
-  location          String?
-  department        String?
-  modality          Modality[]
-  scoreNotification Int?      @map("score_notification")
-  salaryMin         Float?    @map("salary_min")
-  salaryMax         Float?    @map("salary_max")
-  isDefault         Boolean   @default(false) @map("is_default")
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
   deletedAt         DateTime? @map("deleted_at")
@@ -52,11 +51,13 @@ model Post {
   location     String?
   modality     Modality[]
   seniority    Seniority?
-  salary       Float?
-  technologies String[]
+  salaryMin    Float?
+  salaryMax    Float?
+  skills       String[]
   benefits     String[]
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
+  deletedAt    DateTime?   @map("deleted_at")
 
   @@map("posts")
 }

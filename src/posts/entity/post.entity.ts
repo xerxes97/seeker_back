@@ -6,8 +6,10 @@ export class Post {
   location?: string;
   modality?: string[];
   seniority?: string;
-  salary?: number;
-  technologies?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+  skills?: string[];
+  benefits?: string[];
   created_at: string;
   updated_at: string;
 }
