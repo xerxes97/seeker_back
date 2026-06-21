@@ -14,5 +14,4 @@ export interface UserProfileRepository {
     profile: UpdateUserProfileDto,
   ): Promise<ListUserProfileDto | null>;
   delete(profileId: string): Promise<void>;
-  setDefault(userId: string, profileId: string): Promise<void>;
 }

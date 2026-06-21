@@ -2,14 +2,9 @@ import {
   IsUUID,
   IsArray,
   IsString,
-  IsInt,
-  Min,
-  Max,
-  IsIn,
   IsOptional,
   ArrayMaxSize,
   IsDate,
-  IsNumber,
 } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
@@ -41,37 +36,6 @@ export class CreateUserProfileDto {
   roles?: string[];
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(50)
-  experience_years?: number;
-
-  @IsOptional()
-  @IsIn(SENIORITY_VALUES)
-  seniority?: Seniority;
-
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @IsOptional()
-  @IsString()
-  department?: string;
-
-  @IsNumber()
-  @IsOptional()
-  salaryMin?: number;
-
-  @IsNumber()
-  @IsOptional()
-  salaryMax?: number;
-
-  @IsOptional()
-  @IsArray()
-  @IsIn(MODALITY_VALUES, { each: true })
-  modality?: Modality[];
-
-  @IsOptional()
   @IsDate()
   created_at?: Date;
 
@@ -82,8 +46,4 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsDate()
   deleted_at?: Date;
-
-  @IsOptional()
-  @IsNumber()
-  scoreNotification?: number;
 }
