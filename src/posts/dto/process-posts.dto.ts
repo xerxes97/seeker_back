@@ -19,3 +19,35 @@ export class ProcessPostsDto {
   @Type(() => PostDto)
   posts: PostDto[];
 }
+
+export class ExtractedPostDto {
+  @IsString()
+  postId: string;
+
+  @IsOptional()
+  @IsString()
+  author?: string | null;
+
+  @IsOptional()
+  @IsString()
+  authorProfile?: string | null;
+
+  @IsOptional()
+  @IsString()
+  content?: string | null;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
+
+  @IsOptional()
+  @IsString()
+  publishedAt?: string | null;
+}
+
+export class ProcessExtractedPostsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExtractedPostDto)
+  posts: ExtractedPostDto[];
+}
