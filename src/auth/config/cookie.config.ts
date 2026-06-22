@@ -14,7 +14,10 @@ export function getCookieOptions(isProd: boolean): CookieOptions {
   };
 }
 
-export function getCookieConfig(isProd: boolean, remember?: boolean): CookieOptions {
+export function getCookieConfig(
+  isProd: boolean,
+  remember?: boolean,
+): CookieOptions {
   return {
     ...getCookieOptions(isProd),
     maxAge: remember ? COOKIE_MAX_AGE_REMEMBER : COOKIE_MAX_AGE,

@@ -9,7 +9,7 @@ import { DEFAULT_SCORE_NOTIFICATION } from '../../core/constants/notification.co
 
 @Injectable()
 export class UserProfileRepositoryImpl implements UserProfileRepository {
-  constructor(private readonly firebaseRepository: FirebaseRepository) { }
+  constructor(private readonly firebaseRepository: FirebaseRepository) {}
 
   async save(
     userId: string,
@@ -23,18 +23,19 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     const existing = profiles?.[0];
 
     if (existing) {
-      return await this.firebaseRepository.update(
-        profile,
-        { collection: Collections.USER_PROFILES, value: existing.id },
-      );
+      return await this.firebaseRepository.update(profile, {
+        collection: Collections.USER_PROFILES,
+        value: existing.id,
+      });
     } else {
       const data = {
         ...profile,
-        scoreNotification: profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION,
+        scoreNotification:
+          profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION,
       };
       return await this.firebaseRepository.create<ListUserProfileDto>(
         { collection: Collections.USERS, value: userId },
-        { collection: Collections.USER_PROFILES, value: data }
+        { collection: Collections.USER_PROFILES, value: data },
       );
     }
   }
@@ -53,11 +54,13 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     userId: string,
     profile: UpdateUserProfileDto,
   ): Promise<ListUserProfileDto | null> {
-    const [profileFound] = await this.firebaseRepository.findBy<ListUserProfileDto>(
-      [{ field: 'user_id', op: '==', value: userId }],
-      1,
-      { collection: Collections.USERS, value: userId }, { collection: Collections.USER_PROFILES }
-    );
+    const [profileFound] =
+      await this.firebaseRepository.findBy<ListUserProfileDto>(
+        [{ field: 'user_id', op: '==', value: userId }],
+        1,
+        { collection: Collections.USERS, value: userId },
+        { collection: Collections.USER_PROFILES },
+      );
     if (profileFound) {
       return (await this.firebaseRepository.update(
         profile,
@@ -69,12 +72,15 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   async delete(userId: string): Promise<void> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>(Collections.USER_PROFILES);
+    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>(
+      Collections.USER_PROFILES,
+    );
     const existing = profiles.find((p) => p.user_id === userId);
     if (existing) {
-      await this.firebaseRepository.delete(
-        { collection: Collections.USER_PROFILES, value: existing.id },
-      );
+      await this.firebaseRepository.delete({
+        collection: Collections.USER_PROFILES,
+        value: existing.id,
+      });
     }
   }
 }

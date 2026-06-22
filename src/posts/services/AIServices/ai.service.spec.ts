@@ -47,7 +47,7 @@ describe('AiService', () => {
     jest.clearAllMocks();
   });
 
-    it('should extract job info from valid text', async () => {
+  it('should extract job info from valid text', async () => {
     const mockResponse = {
       choices: [
         {

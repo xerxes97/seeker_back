@@ -19,4 +19,4 @@ import { MatchingModule } from 'src/matching/matching.module';
   exports: [PostService],
   imports: [FirebaseModule, UserProfileModule, MatchingModule],
 })
-export class PostsModule { }
+export class PostsModule {}

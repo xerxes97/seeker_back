@@ -44,7 +44,9 @@ describe('PostsController', () => {
   });
 
   it('should accept valid array payload with userId', async () => {
-    const dto: ProcessPostsDto = { posts: [{ postId: '123', text: 'hello', images: ['img1'] }] };
+    const dto: ProcessPostsDto = {
+      posts: [{ postId: '123', text: 'hello', images: ['img1'] }],
+    };
     postService.processPosts.mockResolvedValue([mockResult]);
     const userId = 'user-123';
 

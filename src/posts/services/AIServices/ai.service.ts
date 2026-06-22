@@ -36,10 +36,12 @@ export class AiService {
 
   private async extractJobInfo(text: string): Promise<JobExtractionResult> {
     const prompt = `Classify and extract job data. Return JSON:
-is_job, position, company, location, modality, experience_years, salary, skills[], contact.
+is_job, position, company, location, modality, experience_years, salary, skills[], benefits[], contact.
 
 Modality: remote|hybrid|onsite.
 Salary: {min, max, currency (USD|EUR|COP), period (hour|month|year)}.
+benefits: string[].
+contact: {email, phone, link}
 
 If not job: is_job=false, others=null.
 Use null if missing. No text.
@@ -66,9 +68,9 @@ Text: ${text}`;
       modality: parsed.modality || null,
       experience_years: parsed.experience_years || null,
       salary: parsed.salary ?? null,
-      skills: Array.isArray(parsed.skills)
-        ? parsed.skills
-        : [],
+      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+      benefits: Array.isArray(parsed.benefits) ? parsed.benefits : [],
+      contact: parsed.contact ?? null,
       score: null,
       notify: true,
     };

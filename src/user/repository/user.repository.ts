@@ -8,10 +8,13 @@ import { Collections } from '../../core/constants/collections.enum';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
-  constructor(private readonly firebaseRepository: FirebaseRepository) { }
+  constructor(private readonly firebaseRepository: FirebaseRepository) {}
 
   async create(user: CreateUserDto): Promise<ListUserDto> {
-    return await this.firebaseRepository.create({ collection: Collections.USERS, value: user });
+    return await this.firebaseRepository.create({
+      collection: Collections.USERS,
+      value: user,
+    });
   }
 
   async findById(id: string): Promise<ListUserDto | null> {
@@ -31,15 +34,16 @@ export class UserRepositoryImpl implements UserRepository {
   }
 
   async update(id: string, user: UpdateUserDto): Promise<ListUserDto | null> {
-    return (await this.firebaseRepository.update(
-      user,
-      { collection: Collections.USERS, value: id },
-    )) as unknown as ListUserDto;
+    return (await this.firebaseRepository.update(user, {
+      collection: Collections.USERS,
+      value: id,
+    })) as unknown as ListUserDto;
   }
 
   async delete(id: string): Promise<void> {
-    await this.firebaseRepository.delete(
-      { collection: Collections.USERS, value: id },
-    );
+    await this.firebaseRepository.delete({
+      collection: Collections.USERS,
+      value: id,
+    });
   }
 }

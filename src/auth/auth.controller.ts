@@ -46,7 +46,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Verify authentication status' })
-  @ApiResponse({ status: 200, description: 'Returns true if user is authenticated' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns true if user is authenticated',
+  })
   verify(@GetUserId() userId: string | undefined) {
     return { valid: !!userId };
   }
@@ -62,11 +65,23 @@ export class AuthController {
     try {
       const { access_token } = await this.authService.login(dto);
       const isProd = this.configService.get('ENV') !== 'dev';
-      console.log('Cookie config:', getCookieConfig(isProd, dto.remember), isProd);
+      console.log(
+        'Cookie config:',
+        getCookieConfig(isProd, dto.remember),
+        isProd,
+      );
 
-      res.cookie('access_token', access_token, getCookieConfig(isProd, dto.remember));
+      res.cookie(
+        'access_token',
+        access_token,
+        getCookieConfig(isProd, dto.remember),
+      );
 
-      return { success: true, token: access_token, userInfo: { name: 'John Doe' } };
+      return {
+        success: true,
+        token: access_token,
+        userInfo: { name: 'John Doe' },
+      };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'An error occurred';

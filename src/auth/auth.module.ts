@@ -18,7 +18,8 @@ import { JWT_EXPIRES_IN } from './config/cookie.config';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
-        const expiresIn = (configService.get<string>('JWT_EXPIRES_IN') || JWT_EXPIRES_IN) as JwtSignOptions['expiresIn'];
+        const expiresIn = (configService.get<string>('JWT_EXPIRES_IN') ||
+          JWT_EXPIRES_IN) as JwtSignOptions['expiresIn'];
         if (!secret) {
           throw new Error('JWT_SECRET environment variable is required');
         }

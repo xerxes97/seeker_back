@@ -5,7 +5,10 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'node:crypto';
-import { JWT_EXPIRES_IN, JWT_EXPIRES_IN_REMEMBER } from './config/cookie.config';
+import {
+  JWT_EXPIRES_IN,
+  JWT_EXPIRES_IN_REMEMBER,
+} from './config/cookie.config';
 
 @Injectable()
 export class AuthService {
@@ -40,8 +43,11 @@ export class AuthService {
     }
 
     const userWithPassword = user as unknown as { password: string };
-    
-    const isPasswordValid = await bcrypt.compare(dto.password, userWithPassword.password);
+
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      userWithPassword.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

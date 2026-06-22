@@ -5,4 +5,3 @@ export enum Collections {
 }
 
 export type CollectionType = Collections;
-
