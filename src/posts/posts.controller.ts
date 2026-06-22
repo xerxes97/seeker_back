@@ -1,5 +1,15 @@
-import { Controller, Post, Body, Logger, UseGuards, Version } from '@nestjs/common';
-import { ProcessPostsDto, ProcessExtractedPostsDto } from './dto/process-posts.dto';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  UseGuards,
+  Version,
+} from '@nestjs/common';
+import {
+  ProcessPostsDto,
+  ProcessExtractedPostsDto,
+} from './dto/process-posts.dto';
 import { GetUserId } from '../auth/decorators/get-user.decorator';
 import { PostService } from './services/post.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';

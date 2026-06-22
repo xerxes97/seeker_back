@@ -3,6 +3,7 @@ import { PostRepository } from '../interfaces/repository';
 import { ListPostDto } from '../dto/list-post.dto';
 import { PrismaService } from '../../core/db/prisma.service';
 import { CreatePostDto } from '../dto/create-post.dto';
+import { Modality, Seniority } from '@prisma/client';
 
 @Injectable()
 export class PostRepositoryImpl implements PostRepository {
@@ -36,7 +37,10 @@ export class PostRepositoryImpl implements PostRepository {
     return posts.map((post) => this.toDto(post));
   }
 
-  async update(externalId: string, post: Partial<CreatePostDto>): Promise<ListPostDto> {
+  async update(
+    externalId: string,
+    post: Partial<CreatePostDto>,
+  ): Promise<ListPostDto> {
     const data = this.toPrismaCreate(post, externalId);
     const existing = await this.prisma.post.findUnique({
       where: { externalId },
@@ -65,8 +69,8 @@ export class PostRepositoryImpl implements PostRepository {
       position: post.position ?? '',
       company: post.company ?? '',
       location: post.location ?? null,
-      modality: (post.modality as any) ?? [],
-      seniority: (post.seniority as any) ?? null,
+      modality: (post.modality as Modality) ?? null,
+      seniority: (post?.seniority as Seniority) ?? null,
       salaryMin: post.salaryMin ?? null,
       salaryMax: post.salaryMax ?? null,
       skills: post.skills ?? [],

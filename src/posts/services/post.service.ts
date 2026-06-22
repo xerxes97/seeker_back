@@ -155,7 +155,7 @@ export class PostService {
       position: post.position,
       company: post.company ?? null,
       location: post.location ?? null,
-      modality: this.mapStoredModality(post.modality),
+      modality: (post?.modality as Modality) ?? null,
       experience_years: null,
       salary:
         post.salaryMin != null || post.salaryMax != null
@@ -173,25 +173,13 @@ export class PostService {
     };
   }
 
-  private mapStoredModality(modality?: string[]): Modality | null {
-    if (!modality || modality.length === 0) return null;
-    const map: Record<string, Modality> = {
-      onHouse: 'remote',
-      presential: 'onsite',
-      hybrid: 'hybrid',
-    };
-    return map[modality[0]] ?? null;
-  }
-
   private mapResultToCreatePostDto(result: JobExtractionResult): CreatePostDto {
     return stripUndefined({
       is_job: result.is_job ?? false,
       position: result.position ?? '',
       company: result.company ?? '',
       location: result.location ?? null,
-      modality: result.modality
-        ? [this.mapAiModalityToStored(result.modality)]
-        : null,
+      modality: result.modality ?? null,
       seniority: null,
       salaryMin: result.salary?.min ?? null,
       salaryMax: result.salary?.max ?? null,
@@ -200,14 +188,5 @@ export class PostService {
       created_at: new Date(),
       updated_at: new Date(),
     }) as unknown as CreatePostDto;
-  }
-
-  private mapAiModalityToStored(modality: Modality): string {
-    const map: Record<string, string> = {
-      remote: 'onHouse',
-      onsite: 'presential',
-      hybrid: 'hybrid',
-    };
-    return map[modality] ?? 'onHouse';
   }
 }

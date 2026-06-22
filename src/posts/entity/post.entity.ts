@@ -4,7 +4,7 @@ export class Post {
   position: string;
   company?: string;
   location?: string;
-  modality?: string[];
+  modality?: string;
   seniority?: string;
   salaryMin?: number;
   salaryMax?: number;

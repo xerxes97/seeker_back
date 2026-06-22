@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
-const MODALITY_VALUES = ['onHouse', 'presential', 'hybrid'] as const;
+const MODALITY_VALUES = ['remote', 'onsite', 'hybrid'] as const;
 
 export class CreatePostDto {
   @IsBoolean()
@@ -27,9 +27,8 @@ export class CreatePostDto {
   location?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsIn(MODALITY_VALUES, { each: true })
-  modality?: string[];
+  @IsIn(MODALITY_VALUES)
+  modality?: string;
 
   @IsOptional()
   @IsIn(SENIORITY_VALUES)

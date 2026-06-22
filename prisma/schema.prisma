@@ -49,7 +49,7 @@ model Post {
   position     String
   company      String?
   location     String?
-  modality     Modality[]
+  modality     Modality?
   seniority    Seniority?
   salaryMin    Float?
   salaryMax    Float?
