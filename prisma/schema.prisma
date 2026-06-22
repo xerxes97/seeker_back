@@ -47,7 +47,7 @@ model Post {
   externalId   String?     @unique @map("external_id")
   isJob        Boolean     @map("is_job")
   position     String
-  company      String
+  company      String?
   location     String?
   modality     Modality[]
   seniority    Seniority?

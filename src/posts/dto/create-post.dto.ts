@@ -18,8 +18,9 @@ export class CreatePostDto {
   @IsString()
   position: string;
 
+  @IsOptional()
   @IsString()
-  company: string;
+  company?: string;
 
   @IsOptional()
   @IsString()

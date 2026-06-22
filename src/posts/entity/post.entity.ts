@@ -2,7 +2,7 @@ export class Post {
   id: string;
   is_job: boolean;
   position: string;
-  company: string;
+  company?: string;
   location?: string;
   modality?: string[];
   seniority?: string;

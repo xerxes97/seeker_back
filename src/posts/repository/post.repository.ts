@@ -36,7 +36,7 @@ export class PostRepositoryImpl implements PostRepository {
     return posts.map((post) => this.toDto(post));
   }
 
-  async update(externalId: string, post: CreatePostDto): Promise<ListPostDto> {
+  async update(externalId: string, post: Partial<CreatePostDto>): Promise<ListPostDto> {
     const data = this.toPrismaCreate(post, externalId);
     const existing = await this.prisma.post.findUnique({
       where: { externalId },
@@ -59,11 +59,11 @@ export class PostRepositoryImpl implements PostRepository {
     await this.prisma.post.delete({ where: { id } });
   }
 
-  private toPrismaCreate(post: CreatePostDto, _externalId?: string) {
+  private toPrismaCreate(post: Partial<CreatePostDto>, _externalId?: string) {
     return {
-      isJob: post.is_job,
-      position: post.position,
-      company: post.company,
+      isJob: post.is_job ?? false,
+      position: post.position ?? '',
+      company: post.company ?? '',
       location: post.location ?? null,
       modality: (post.modality as any) ?? [],
       seniority: (post.seniority as any) ?? null,
@@ -80,7 +80,7 @@ export class PostRepositoryImpl implements PostRepository {
       external_id: post.externalId ?? undefined,
       is_job: post.isJob,
       position: post.position,
-      company: post.company,
+      company: post.company ?? undefined,
       location: post.location ?? undefined,
       modality: post.modality,
       seniority: post.seniority,

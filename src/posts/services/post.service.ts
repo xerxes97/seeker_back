@@ -153,7 +153,7 @@ export class PostService {
       postId: post.external_id ?? post.id,
       is_job: post.is_job,
       position: post.position,
-      company: post.company,
+      company: post.company ?? null,
       location: post.location ?? null,
       modality: this.mapStoredModality(post.modality),
       experience_years: null,
