@@ -28,6 +28,7 @@ describe('PostsController', () => {
     salary: null,
     experience_years: 3,
     skills: ['TypeScript'],
+    benefits: ['Health insurance'],
     score: 0.8,
     postId: '123',
     notify: true,

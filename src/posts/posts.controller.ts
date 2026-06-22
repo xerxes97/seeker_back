@@ -1,5 +1,15 @@
-import { Controller, Post, Body, Logger, UseGuards } from '@nestjs/common';
-import { ProcessPostsDto } from './dto/process-posts.dto';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  UseGuards,
+  Version,
+} from '@nestjs/common';
+import {
+  ProcessPostsDto,
+  ProcessExtractedPostsDto,
+} from './dto/process-posts.dto';
 import { GetUserId } from '../auth/decorators/get-user.decorator';
 import { PostService } from './services/post.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
@@ -23,6 +33,21 @@ export class PostsController {
       createPostsDto.posts,
       userId,
     );
+    return { accepted: true, results };
+  }
+
+  @Post()
+  @Version('2')
+  async createV2(
+    @Body() dto: ProcessExtractedPostsDto,
+    @GetUserId() userId: string,
+  ) {
+    const mappedPosts = dto.posts.map((post) => ({
+      postId: post.postId,
+      text: post.content ?? '',
+      images: post.images ?? [],
+    }));
+    const results = await this.postService.processPosts(mappedPosts, userId);
     return { accepted: true, results };
   }
 }

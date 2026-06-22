@@ -1,86 +1,113 @@
 import { Injectable } from '@nestjs/common';
 import { UserProfileRepository } from '../interfaces/repository';
 import { ListUserProfileDto } from '../dto/list-user-profile.dto';
-import { FirebaseRepository } from '../../core/db/firebase.repository';
+import { PrismaService } from '../../core/db/prisma.service';
 import { CreateUserProfileDto } from '../dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from '../dto/update-user-profile.dto';
-import { Collections } from '../../core/constants/collections.enum';
-import { DEFAULT_SCORE_NOTIFICATION } from '../../core/constants/notification.constants';
+
+const userInclude = {
+  user: {
+    select: {
+      experienceYears: true,
+      location: true,
+      department: true,
+      modality: true,
+      seniority: true,
+      scoreNotification: true,
+      salaryMin: true,
+      salaryMax: true,
+    },
+  },
+};
 
 @Injectable()
 export class UserProfileRepositoryImpl implements UserProfileRepository {
-  constructor(private readonly firebaseRepository: FirebaseRepository) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async save(
     userId: string,
     profile: CreateUserProfileDto,
   ): Promise<ListUserProfileDto> {
-    const profiles = await this.firebaseRepository.findBy<ListUserProfileDto>(
-      [{ field: 'user_id', op: '==', value: userId }],
-      1,
-      { collection: Collections.USER_PROFILES },
-    );
-    const existing = profiles?.[0];
+    const data = {
+      userId,
+      name: profile.name ?? null,
+      lastname: profile.lastname ?? null,
+      skills: profile.skills ?? [],
+      roles: profile.roles ?? [],
+    };
 
-    if (existing) {
-      return await this.firebaseRepository.update(profile, {
-        collection: Collections.USER_PROFILES,
-        value: existing.id,
-      });
-    } else {
-      const data = {
-        ...profile,
-        scoreNotification:
-          profile.scoreNotification ?? DEFAULT_SCORE_NOTIFICATION,
-      };
-      return await this.firebaseRepository.create<ListUserProfileDto>(
-        { collection: Collections.USERS, value: userId },
-        { collection: Collections.USER_PROFILES, value: data },
-      );
-    }
+    const created = await this.prisma.userProfile.create({
+      data,
+      include: userInclude,
+    });
+    return this.toDto(created);
   }
 
-  async findByUserId(userId: string): Promise<ListUserProfileDto | null> {
-    const profiles = await this.firebaseRepository.findBy<ListUserProfileDto>(
-      [{ field: 'user_id', op: '==', value: userId }],
-      1,
-      { collection: Collections.USERS, value: userId },
-      { collection: Collections.USER_PROFILES },
-    );
-    return profiles?.[0] ?? null;
+  async findByUserId(userId: string): Promise<ListUserProfileDto[]> {
+    const profiles = await this.prisma.userProfile.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: userInclude,
+    });
+    return profiles.map((p) => this.toDto(p));
+  }
+
+  async findById(profileId: string): Promise<ListUserProfileDto | null> {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { id: profileId },
+      include: userInclude,
+    });
+    if (!profile) return null;
+    return this.toDto(profile);
   }
 
   async update(
-    userId: string,
+    profileId: string,
     profile: UpdateUserProfileDto,
   ): Promise<ListUserProfileDto | null> {
-    const [profileFound] =
-      await this.firebaseRepository.findBy<ListUserProfileDto>(
-        [{ field: 'user_id', op: '==', value: userId }],
-        1,
-        { collection: Collections.USERS, value: userId },
-        { collection: Collections.USER_PROFILES },
-      );
-    if (profileFound) {
-      return (await this.firebaseRepository.update(
-        profile,
-        { collection: Collections.USERS, value: userId },
-        { collection: Collections.USER_PROFILES, value: profileFound.id },
-      )) as unknown as ListUserProfileDto;
-    }
-    return null;
+    const existing = await this.prisma.userProfile.findUnique({
+      where: { id: profileId },
+    });
+    if (!existing) return null;
+
+    const data: any = {};
+    if (profile.name !== undefined) data.name = profile.name;
+    if (profile.lastname !== undefined) data.lastname = profile.lastname;
+    if (profile.skills !== undefined) data.skills = profile.skills;
+    if (profile.roles !== undefined) data.roles = profile.roles;
+
+    const updated = await this.prisma.userProfile.update({
+      where: { id: profileId },
+      data,
+      include: userInclude,
+    });
+    return this.toDto(updated);
   }
 
-  async delete(userId: string): Promise<void> {
-    const profiles = await this.firebaseRepository.findAll<ListUserProfileDto>(
-      Collections.USER_PROFILES,
-    );
-    const existing = profiles.find((p) => p.user_id === userId);
-    if (existing) {
-      await this.firebaseRepository.delete({
-        collection: Collections.USER_PROFILES,
-        value: existing.id,
-      });
-    }
+  async delete(profileId: string): Promise<void> {
+    await this.prisma.userProfile.delete({ where: { id: profileId } });
+  }
+
+  private toDto(profile: any): ListUserProfileDto {
+    const u = profile.user ?? {};
+    return {
+      id: profile.id,
+      user_id: profile.userId,
+      name: profile.name ?? undefined,
+      lastname: profile.lastname ?? undefined,
+      skills: profile.skills,
+      roles: profile.roles,
+      experience_years: u.experienceYears ?? undefined,
+      seniority: u.seniority ?? undefined,
+      location: u.location ?? undefined,
+      department: u.department ?? undefined,
+      modality: u.modality ?? [],
+      scoreNotification: u.scoreNotification ?? undefined,
+      salaryMin: u.salaryMin ?? undefined,
+      salaryMax: u.salaryMax ?? undefined,
+      created_at: profile.createdAt,
+      updated_at: profile.updatedAt,
+      deleted_at: profile.deletedAt,
+    };
   }
 }

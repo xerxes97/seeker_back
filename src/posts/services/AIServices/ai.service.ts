@@ -46,7 +46,10 @@ contact: {email, phone, link}
 If not job: is_job=false, others=null.
 Use null if missing. No text.
 
+if not a job, why?: string
+
 Text: ${text}`;
+    console.log(text);
 
     const result = await this.groq.chat.completions.create({
       messages: [
@@ -59,6 +62,22 @@ Text: ${text}`;
     });
     const response = result.choices[0]?.message?.content || '';
     const parsed = this.safeParse(response) as Partial<JobExtractionResult>;
+    console.log('parsed', parsed);
+    console.log('result', {
+      postId: '',
+      is_job: parsed.is_job ?? null,
+      position: parsed.position || null,
+      company: parsed.company || null,
+      location: parsed.location || null,
+      modality: parsed.modality || null,
+      experience_years: parsed.experience_years || null,
+      salary: parsed.salary ?? null,
+      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+      benefits: Array.isArray(parsed.benefits) ? parsed.benefits : [],
+      contact: parsed.contact ?? null,
+      score: null,
+      notify: true,
+    });
     return {
       postId: '',
       is_job: parsed.is_job ?? null,

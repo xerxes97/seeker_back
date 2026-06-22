@@ -27,4 +27,5 @@ export interface JobExtractionResult {
   contact?: Contact | null;
   score: number | null;
   notify: boolean;
+  why?: string | null;
 }

@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 const SENIORITY_VALUES = ['junior', 'mid', 'senior'] as const;
-const MODALITY_VALUES = ['onHouse', 'presential', 'hybrid'] as const;
+const MODALITY_VALUES = ['remote', 'onsite', 'hybrid'] as const;
 
 export class CreatePostDto {
   @IsBoolean()
@@ -18,17 +18,17 @@ export class CreatePostDto {
   @IsString()
   position: string;
 
+  @IsOptional()
   @IsString()
-  company: string;
+  company?: string;
 
   @IsOptional()
   @IsString()
   location?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsIn(MODALITY_VALUES, { each: true })
-  modality?: string[];
+  @IsIn(MODALITY_VALUES)
+  modality?: string;
 
   @IsOptional()
   @IsIn(SENIORITY_VALUES)
@@ -37,12 +37,17 @@ export class CreatePostDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  salary?: number;
+  salaryMin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  salaryMax?: number;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  technologies?: string[];
+  skills?: string[];
 
   @IsOptional()
   @IsArray()

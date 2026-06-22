@@ -1,23 +1,29 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PDFParse } from 'pdf-parse';
-import { SECTION_HEADERS } from '../constants';
-import {
-  CvParserOutput,
-  EducationEntry,
-  ExperienceEntry,
-  MammothResult,
-  ParsedCvSections,
-} from '../interfaces';
+import Groq from 'groq-sdk';
+import { CvParserOutput, MammothResult } from '../interfaces';
 
 @Injectable()
 export class CvParserUseCase {
+  private readonly logger = new Logger(CvParserUseCase.name);
+  private readonly groq: Groq;
+  private readonly model: string;
+
+  constructor(configService: ConfigService) {
+    this.groq = new Groq({
+      apiKey: configService.get('GROQ_API_KEY') || '',
+    });
+    this.model = configService.get('MODEL') || 'llama-3.3-70b-versatile';
+  }
+
   async processCv(
     buffer: Buffer,
     originalname: string,
   ): Promise<CvParserOutput> {
     const ext = originalname.split('.').pop()?.toLowerCase();
     const text = await this.extractText(buffer, ext);
-    return this.parseCvText(text);
+    return this.parseWithAI(text);
   }
 
   private async extractText(
@@ -49,269 +55,136 @@ export class CvParserUseCase {
     return mammoth.extractRawText({ buffer });
   }
 
-  private parseCvText(text: string): CvParserOutput {
-    text = text.replace(/--\s*(?:page\s+)?\d+\s+of\s+\d+\s*--/gi, '');
-    const sections = this.splitIntoSections(text);
+  private async parseWithAI(text: string): Promise<CvParserOutput> {
+    const maxChars = 12000;
+    const truncated = text.length > maxChars ? text.slice(0, maxChars) : text;
 
-    const headerText = sections.__header__ ?? text.slice(0, 500);
-    const email = this.extractEmail(headerText);
-    const phone = this.extractPhone(headerText);
-    const linkedIn = this.extractLinkedIn(headerText);
-    const name = this.extractName(headerText);
+    const prompt = `Extract CV data as JSON. null if missing.
 
-    const modules: CvParserOutput = {
-      personalInfo: {
-        name,
-        email,
-        phone,
-        linkedIn,
-      },
+personalInfo: {name, email, phone, linkedIn}
+summary: string
+skills: {raw: section text, parsed: string[]}
+experience: {raw: section text, parsed: [{position, company, dates, description}]}
+education: {raw: section text, parsed: [{degree, institution, dates}]}
+languages: {raw: section text, parsed: string[]}
+certifications: {raw: section text, parsed: string[]}
+projects: string
+
+JSON only. No explanation.
+
+CV:
+${truncated}`;
+
+    const result = await this.groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: this.model,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = result.choices[0]?.message?.content || '{}';
+    const parsed = this.safeParse(content) as Record<string, unknown>;
+
+    const sections = [
+      'summary',
+      'skills',
+      'experience',
+      'education',
+      'languages',
+      'certifications',
+      'projects',
+    ];
+    const rawSections = sections.filter(
+      (s) => parsed[s] !== undefined && parsed[s] !== null && parsed[s] !== '',
+    );
+
+    const personalInfo = parsed.personalInfo as
+      | Record<string, unknown>
+      | undefined;
+
+    const buildSection = <T>(
+      key: string,
+    ): { raw: string; parsed: T[] } | undefined => {
+      const section = parsed[key] as { raw?: string; parsed?: T[] } | undefined;
+      if (!section) return undefined;
+      return {
+        raw: typeof section.raw === 'string' ? section.raw : '',
+        parsed: Array.isArray(section.parsed) ? section.parsed : [],
+      };
     };
 
-    if (sections.summary) {
-      modules.summary = sections.summary;
-    }
+    const str = (v: unknown): string | null =>
+      typeof v === 'string' ? v : null;
 
-    if (sections.skills) {
-      modules.skills = {
-        raw: sections.skills,
-        parsed: this.parseSkillsSection(sections.skills),
-      };
-    }
-
-    if (sections.experience) {
-      modules.experience = {
-        raw: sections.experience,
-        parsed: this.parseExperienceSection(sections.experience),
-      };
-    }
-
-    if (sections.education) {
-      modules.education = {
-        raw: sections.education,
-        parsed: this.parseEducationSection(sections.education),
-      };
-    }
-
-    if (sections.languages) {
-      modules.languages = {
-        raw: sections.languages,
-        parsed: sections.languages
-          .split(/[,\n]/)
-          .map((l) => l.trim())
-          .filter(Boolean),
-      };
-    }
-
-    if (sections.certifications) {
-      modules.certifications = {
-        raw: sections.certifications,
-        parsed: sections.certifications
-          .split('\n')
-          .map((l) => l.trim())
-          .filter(Boolean),
-      };
-    }
-
-    if (sections.projects) {
-      modules.projects = sections.projects;
-    }
-
-    modules._rawSections = Object.keys(sections).filter(
-      (k) => k !== '__header__',
-    );
-
-    return modules;
+    return {
+      personalInfo: {
+        name: str(personalInfo?.name),
+        email: str(personalInfo?.email),
+        phone: str(personalInfo?.phone),
+        linkedIn: str(personalInfo?.linkedIn),
+      },
+      ...(str(parsed.summary) ? { summary: str(parsed.summary)! } : {}),
+      ...(parsed.skills ? { skills: buildSection<string>('skills')! } : {}),
+      ...(parsed.experience
+        ? {
+            experience: buildSection<{
+              position: string;
+              company: string;
+              dates: string;
+              description: string;
+            }>('experience')!,
+          }
+        : {}),
+      ...(parsed.education
+        ? {
+            education: buildSection<{
+              degree: string;
+              institution: string;
+              dates: string;
+            }>('education')!,
+          }
+        : {}),
+      ...(parsed.languages
+        ? { languages: buildSection<string>('languages')! }
+        : {}),
+      ...(parsed.certifications
+        ? { certifications: buildSection<string>('certifications')! }
+        : {}),
+      ...(str(parsed.projects) ? { projects: str(parsed.projects)! } : {}),
+      _rawSections: rawSections,
+    };
   }
 
-  private splitIntoSections(text: string): ParsedCvSections {
-    const lines = text.split('\n');
-    const sections: ParsedCvSections = {};
-    let currentSection: keyof ParsedCvSections = '__header__';
-    const headerLines: string[] = [];
+  private safeParse(text: string): unknown {
+    const cleaned = text.replaceAll('```json', '').replaceAll('```', '').trim();
 
-    for (const line of lines) {
-      const trimmed = line.trim().toLowerCase();
-      let matched = false;
+    const match = new RegExp(/\{[\s\S]*\}/).exec(cleaned);
+    if (!match) {
+      this.logger.warn('No JSON found in AI response, returning empty object');
+      return {};
+    }
 
-      for (const section of SECTION_HEADERS) {
-        if (
-          section.patterns.some((p) => p.test(trimmed)) &&
-          trimmed.length < 100
-        ) {
-          currentSection = section.key as keyof ParsedCvSections;
-          sections[currentSection] = sections[currentSection] ?? '';
-          matched = true;
-          break;
-        }
-      }
+    try {
+      return JSON.parse(match[0]);
+    } catch {
+      const balanced = this.extractBalancedJson(match[0]);
+      return JSON.parse(balanced);
+    }
+  }
 
-      if (!matched) {
-        if (currentSection === '__header__') {
-          headerLines.push(trimmed);
-        } else {
-          sections[currentSection] += trimmed + '\n';
+  private extractBalancedJson(text: string): string {
+    let depth = 0;
+    let start = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') {
+        if (depth === 0) start = i;
+        depth++;
+      } else if (text[i] === '}') {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          return text.slice(start, i + 1);
         }
       }
     }
-
-    if (headerLines.length > 0) {
-      sections.__header__ = headerLines.join('\n');
-    }
-
-    for (const key of Object.keys(sections)) {
-      sections[key] = sections[key].trim();
-    }
-
-    return sections;
-  }
-
-  private parseExperienceSection(text: string): ExperienceEntry[] {
-    const entries: ExperienceEntry[] = [];
-    const blocks = text.split(/\n\s*\n/).filter(Boolean);
-
-    for (const block of blocks) {
-      const lines = block
-        .split('\n')
-        .map((l) => l.trim())
-        .filter(Boolean);
-      if (lines.length === 0) continue;
-
-      const entry: ExperienceEntry = {
-        position: '',
-        company: '',
-        dates: '',
-        description: '',
-      };
-      const dateMatch = block.match(
-        /(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[a-z]*[\s.-]?\d{4}\s*(?:-|–|to|–|present|now|actualidad)\s*(?:\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[a-z]*[\s.-]?\d{4}|present|now|actualidad)?)/i,
-      );
-
-      if (dateMatch) {
-        entry.dates = dateMatch[0].trim();
-      }
-
-      const dashLine = lines.find(
-        (l) => l.includes(' - ') || l.includes(' – ') || l.includes(' | '),
-      );
-      if (dashLine && !dashLine.match(/^\d/)) {
-        const parts = dashLine.split(/[-–|]/).map((p) => p.trim());
-        if (parts.length >= 2) {
-          entry.position = parts[0];
-          entry.company = parts[1];
-        }
-      }
-
-      if (
-        !entry.position &&
-        lines[0] &&
-        !lines[0].match(/^\d/) &&
-        !lines[0].match(/present|now|actualidad/i)
-      ) {
-        entry.position = lines[0];
-        if (
-          lines[1] &&
-          !lines[1].match(/^\d/) &&
-          !lines[1].match(/present|now|actualidad/i)
-        ) {
-          entry.company = lines[1];
-        }
-      }
-
-      const linesWithoutDate = lines.filter(
-        (l) => l !== entry.dates && l !== dashLine,
-      );
-      entry.description = linesWithoutDate
-        .filter((l) => l !== entry.position && l !== entry.company)
-        .join(' ')
-        .trim();
-
-      entries.push(entry);
-    }
-
-    return entries;
-  }
-
-  private parseEducationSection(text: string): EducationEntry[] {
-    const entries: EducationEntry[] = [];
-    const blocks = text.split(/\n\s*\n/).filter(Boolean);
-
-    for (const block of blocks) {
-      const lines = block
-        .split('\n')
-        .map((l) => l.trim())
-        .filter(Boolean);
-      if (lines.length === 0) continue;
-
-      const entry: EducationEntry = { degree: '', institution: '', dates: '' };
-      const dateMatch = block.match(
-        /(\d{4}\s*(?:-|–)\s*(?:\d{4}|present|now|actualidad))/,
-      );
-      if (dateMatch) {
-        entry.dates = dateMatch[0].trim();
-      }
-
-      const degreeKeywords =
-        /(?:bachelor|master|phd|doctor|degree|diploma|licenciatura|ingeniería|ingeniero|bachiller|técnico|tecnólogo|maestría|doctorado|diplomatura|carrera|curso|especialización|máster)/i;
-      const degreeLine = lines.find((l) => degreeKeywords.test(l));
-      if (degreeLine) {
-        entry.degree = degreeLine;
-      }
-
-      if (lines.length > 0) {
-        const nonDegreeLines = lines.filter(
-          (l) => l !== degreeLine && l !== entry.dates,
-        );
-        entry.institution = nonDegreeLines[0] ?? '';
-      }
-
-      entries.push(entry);
-    }
-
-    return entries;
-  }
-
-  private parseSkillsSection(text: string): string[] {
-    const skills = text
-      .split(/[,\n•·\-|]/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && s.length < 50);
-    return [...new Set(skills)];
-  }
-
-  private extractEmail(text: string): string | null {
-    const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-    return match?.[0] ?? null;
-  }
-
-  private extractPhone(text: string): string | null {
-    const match = text.match(
-      /(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/,
-    );
-    return match?.[0] ?? null;
-  }
-
-  private extractLinkedIn(text: string): string | null {
-    const match = text.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
-    return match?.[0] ?? null;
-  }
-
-  private extractName(text: string): string | null {
-    const lines = text
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean);
-    for (const line of lines.slice(0, 5)) {
-      if (
-        line.length > 2 &&
-        line.length < 60 &&
-        !line.includes('@') &&
-        !line.match(/http|<|>|\d{3,}/) &&
-        line.match(/^[A-Z][a-záéíóúüñ]+(?:\s+[A-Z][a-záéíóúüñ]+)+/)
-      ) {
-        return line;
-      }
-    }
-    return null;
+    throw new Error('No balanced JSON found');
   }
 }

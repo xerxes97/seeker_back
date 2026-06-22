@@ -46,15 +46,19 @@ export class PostService {
     const results: Array<JobExtractionResult | null> = [];
     let profile: ListUserProfileDto | null = null;
     if (userId) {
-      profile = await this.userProfileService.getProfile(userId);
+      profile = await this.userProfileService.getDefaultProfile(userId);
     }
 
-    const existingPostsMap = await this.repo.findByIds(
+    const existingPosts = await this.repo.findByExternalIds(
       posts.map((p) => p.postId),
+    );
+    const existingPostsMap = new Map(
+      existingPosts.map((p) => [p.external_id, p]),
     );
 
     for (const post of posts) {
       const existingPost = existingPostsMap.get(post.postId) ?? null;
+      existingPost && console.log('Existing post:', existingPost);
       const result = await this.processPost(post, profile, existingPost);
       results.push(result);
     }
@@ -92,7 +96,7 @@ export class PostService {
         if (result) {
           try {
             const createDto = this.mapResultToCreatePostDto(result);
-            await this.repo.set(post.postId, createDto);
+            await this.repo.update(post.postId, createDto);
             this.logger.log(`Post ${post.postId} stored in posts collection`);
           } catch (storeError) {
             this.logger.error(
@@ -146,31 +150,27 @@ export class PostService {
 
   private mapStoredPostToResult(post: ListPostDto): JobExtractionResult {
     return {
-      postId: post.id,
+      postId: post.external_id ?? post.id,
       is_job: post.is_job,
       position: post.position,
-      company: post.company,
+      company: post.company ?? null,
       location: post.location ?? null,
-      modality: this.mapStoredModality(post.modality),
+      modality: (post?.modality as Modality) ?? null,
       experience_years: null,
-      salary: post.salary
-        ? { min: post.salary, max: post.salary, currency: null, period: null }
-        : null,
-      skills: post.technologies ?? [],
+      salary:
+        post.salaryMin != null || post.salaryMax != null
+          ? {
+              min: post.salaryMin ?? null,
+              max: post.salaryMax ?? null,
+              currency: null,
+              period: null,
+            }
+          : null,
+      skills: post.skills ?? [],
       benefits: post.benefits ?? [],
       score: null,
       notify: true,
     };
-  }
-
-  private mapStoredModality(modality?: string[]): Modality | null {
-    if (!modality || modality.length === 0) return null;
-    const map: Record<string, Modality> = {
-      onHouse: 'remote',
-      presential: 'onsite',
-      hybrid: 'hybrid',
-    };
-    return map[modality[0]] ?? null;
   }
 
   private mapResultToCreatePostDto(result: JobExtractionResult): CreatePostDto {
@@ -179,24 +179,14 @@ export class PostService {
       position: result.position ?? '',
       company: result.company ?? '',
       location: result.location ?? null,
-      modality: result.modality
-        ? [this.mapAiModalityToStored(result.modality)]
-        : null,
+      modality: result.modality ?? null,
       seniority: null,
-      salary: result.salary?.max ?? result.salary?.min ?? null,
-      technologies: result.skills.length > 0 ? result.skills : null,
+      salaryMin: result.salary?.min ?? null,
+      salaryMax: result.salary?.max ?? null,
+      skills: result.skills.length > 0 ? result.skills : null,
       benefits: result.benefits.length > 0 ? result.benefits : null,
       created_at: new Date(),
       updated_at: new Date(),
     }) as unknown as CreatePostDto;
-  }
-
-  private mapAiModalityToStored(modality: Modality): string {
-    const map: Record<string, string> = {
-      remote: 'onHouse',
-      onsite: 'presential',
-      hybrid: 'hybrid',
-    };
-    return map[modality] ?? 'onHouse';
   }
 }

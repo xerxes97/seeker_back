@@ -60,6 +60,7 @@ describe('AiService', () => {
               modality: 'remote',
               salary: null,
               skills: ['TypeScript', 'NestJS'],
+              benefits: ['Health insurance', 'Remote work'],
             }),
           },
         },
@@ -78,6 +79,7 @@ describe('AiService', () => {
       location: 'Remote',
       modality: 'remote',
       skills: ['TypeScript', 'NestJS'],
+      benefits: ['Health insurance', 'Remote work'],
     });
   });
 
@@ -94,6 +96,7 @@ describe('AiService', () => {
               modality: null,
               salary: null,
               skills: [],
+              benefits: [],
             }),
           },
         },
@@ -104,6 +107,7 @@ describe('AiService', () => {
     const result = await service.processText('123', 'Some random text');
     expect(result?.position).toBeNull();
     expect(result?.skills).toEqual([]);
+    expect(result?.benefits).toEqual([]);
   });
 
   it('should handle complex text with consistent structure', async () => {
@@ -119,6 +123,7 @@ describe('AiService', () => {
               modality: 'onsite',
               salary: null,
               skills: ['React', 'Node.js', 'MongoDB'],
+              benefits: ['Stock options', 'Free lunch'],
             }),
           },
         },
@@ -135,6 +140,7 @@ describe('AiService', () => {
     expect(result).toHaveProperty('location');
     expect(result).toHaveProperty('skills');
     expect(Array.isArray(result?.skills)).toBe(true);
+    expect(result?.benefits).toEqual(['Stock options', 'Free lunch']);
   });
 
   it('should return null on API error', async () => {

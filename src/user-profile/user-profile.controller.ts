@@ -3,7 +3,9 @@ import {
   Get,
   Put,
   Post,
+  Delete,
   Body,
+  Param,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -16,7 +18,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery,
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
@@ -33,19 +34,62 @@ export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
+  @ApiOperation({ summary: 'Get all user profiles' })
+  @ApiResponse({
+    status: 200,
+    description: 'Profiles found',
+    type: [ListUserProfileDto],
+  })
+  async getProfiles(
+    @GetUserId() userId: string,
+  ): Promise<ListUserProfileDto[]> {
+    if (!userId) return [];
+    return await this.userProfileService.getProfiles(userId);
+  }
+
+  @Get('default')
+  @ApiOperation({ summary: 'Get default profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Default profile found',
+    type: ListUserProfileDto,
+  })
+  async getDefaultProfile(
+    @GetUserId() userId: string,
+  ): Promise<ListUserProfileDto | null> {
+    if (!userId) return null;
+    return await this.userProfileService.getDefaultProfile(userId);
+  }
+
+  @Get(':profileId')
+  @ApiOperation({ summary: 'Get profile by id' })
   @ApiResponse({
     status: 200,
     description: 'Profile found',
     type: ListUserProfileDto,
   })
-  @ApiResponse({ status: 404, description: 'Profile not found' })
-  async getProfile(
-    @GetUserId() userId: string,
+  async getProfileById(
+    @Param('profileId') profileId: string,
   ): Promise<ListUserProfileDto | null> {
-    if (!userId) return null;
-    return await this.userProfileService.getProfile(userId);
+    return await this.userProfileService.getProfileById(profileId);
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new profile' })
+  @ApiResponse({
+    status: 201,
+    description: 'Profile created',
+    type: ListUserProfileDto,
+  })
+  async createProfile(
+    @Body() dto: UpdateUserProfileDto,
+    @GetUserId() userId: string,
+  ): Promise<ListUserProfileDto> {
+    return await this.userProfileService.saveProfile(userId, {
+      user_id: userId,
+      ...dto,
+    });
   }
 
   @Post('cv')
@@ -82,10 +126,9 @@ export class UserProfileController {
     );
   }
 
-  @Put()
+  @Put(':profileId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update existing user profile' })
-  @ApiQuery({ name: 'user_id', description: 'User UUID', required: true })
   @ApiResponse({
     status: 200,
     description: 'Profile updated successfully',
@@ -93,10 +136,16 @@ export class UserProfileController {
   })
   @ApiResponse({ status: 404, description: 'Profile not found' })
   async updateProfile(
+    @Param('profileId') profileId: string,
     @Body() dto: UpdateUserProfileDto,
-    @GetUserId() userId: string,
   ): Promise<ListUserProfileDto | null> {
-    if (!userId) return null;
-    return this.userProfileService.updateProfile(userId, dto);
+    return this.userProfileService.updateProfile(profileId, dto);
+  }
+
+  @Delete(':profileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a profile' })
+  async deleteProfile(@Param('profileId') profileId: string): Promise<void> {
+    await this.userProfileService.deleteProfile(profileId);
   }
 }
